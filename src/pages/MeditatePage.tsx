@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import MeditationTimer from '@/components/MeditationTimer';
 import BreathingExercise from '@/components/BreathingExercise';
 import { useAppContext } from '@/contexts/AppContext';
 import { toast } from 'sonner';
+import { stopAllSounds } from '@/utils/audioUtils';
 
 const MeditatePage: React.FC = () => {
   const { addMeditationSession } = useAppContext();
@@ -19,6 +20,13 @@ const MeditatePage: React.FC = () => {
     toast.success(`Meditation session (${duration} minutes) recorded!`);
   };
 
+  // Clean up any playing audio when navigating away
+  useEffect(() => {
+    return () => {
+      stopAllSounds();
+    };
+  }, []);
+  
   return (
     <Layout>
       <div className="mb-6">

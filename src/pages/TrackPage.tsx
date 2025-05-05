@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import MoodTracker from '@/components/MoodTracker';
 import MoodChart from '@/components/MoodChart';
 import { useAppContext } from '@/contexts/AppContext';
 import { toast } from 'sonner';
+import { stopAllSounds } from '@/utils/audioUtils';
 
 const TrackPage: React.FC = () => {
   const { moodEntries, addMoodEntry } = useAppContext();
@@ -13,6 +14,11 @@ const TrackPage: React.FC = () => {
     addMoodEntry(moodData);
     toast.success('Mood tracked successfully!');
   };
+
+  // Clean up any playing audio when navigating to this page
+  useEffect(() => {
+    stopAllSounds();
+  }, []);
 
   return (
     <Layout>

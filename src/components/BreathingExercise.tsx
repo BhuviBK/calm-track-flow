@@ -3,12 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Volume2, VolumeX } from 'lucide-react';
+import { playBreathSound, toggleAmbientMusic, stopAllSounds } from '@/utils/audioUtils';
 
 const BreathingExercise: React.FC = () => {
   const [phase, setPhase] = useState<'inhale' | 'hold' | 'exhale' | 'rest'>('rest');
   const [count, setCount] = useState<number>(0);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [cycles, setCycles] = useState<number>(0);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [musicEnabled, setMusicEnabled] = useState<boolean>(true);
 
   // Timing for each phase in seconds
   const timing = {
@@ -65,11 +71,33 @@ const BreathingExercise: React.FC = () => {
     };
   }, [isActive, phase]);
   
+  // Play sounds for breath phases
+  useEffect(() => {
+    if (isActive && soundEnabled && count === 0) {
+      playBreathSound(phase);
+    }
+  }, [phase, count, isActive, soundEnabled]);
+  
+  // Handle ambient music
+  useEffect(() => {
+    if (isActive && musicEnabled) {
+      toggleAmbientMusic(true);
+    } else {
+      toggleAmbientMusic(false);
+    }
+    
+    return () => {
+      stopAllSounds();
+    };
+  }, [isActive, musicEnabled]);
+  
   const toggleActive = () => {
     if (!isActive) {
       setPhase('inhale');
       setCount(0);
       setCycles(0);
+    } else {
+      stopAllSounds();
     }
     setIsActive(!isActive);
   };
@@ -133,6 +161,37 @@ const BreathingExercise: React.FC = () => {
                 </p>
               </>
             )}
+          </div>
+          
+          <div className="flex flex-col space-y-2 mb-4 w-full max-w-xs">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="sound-toggle" className="flex items-center gap-2">
+                {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                <span>Breath Sounds</span>
+              </Label>
+              <Switch 
+                id="sound-toggle" 
+                checked={soundEnabled} 
+                onCheckedChange={() => setSoundEnabled(!soundEnabled)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Label htmlFor="music-toggle" className="flex items-center gap-2">
+                {musicEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                <span>Background Music</span>
+              </Label>
+              <Switch 
+                id="music-toggle" 
+                checked={musicEnabled} 
+                onCheckedChange={() => {
+                  setMusicEnabled(!musicEnabled);
+                  if (isActive) {
+                    toggleAmbientMusic(!musicEnabled);
+                  }
+                }}
+              />
+            </div>
           </div>
           
           <Button 

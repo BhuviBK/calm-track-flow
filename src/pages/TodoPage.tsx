@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Check, X, Edit, Flame } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import PomodoroTimer from '@/components/PomodoroTimer';
-import confetti from 'react-confetti';
+import ReactConfetti from 'react-confetti';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Todo {
@@ -79,7 +78,7 @@ const TodoPage: React.FC = () => {
 
   return (
     <Layout>
-      {showConfetti && <confetti recycle={false} numberOfPieces={200} />}
+      {showConfetti && <ReactConfetti recycle={false} numberOfPieces={200} />}
       
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Todo List</h1>

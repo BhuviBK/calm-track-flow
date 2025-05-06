@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Volume2, VolumeX } from 'lucide-react';
 import { playBreathSound, toggleAmbientMusic, stopAllSounds } from '@/utils/audioUtils';
+import Confetti from 'react-confetti';
 
 const BreathingExercise: React.FC = () => {
   const [phase, setPhase] = useState<'inhale' | 'hold' | 'exhale' | 'rest'>('rest');
@@ -15,6 +16,7 @@ const BreathingExercise: React.FC = () => {
   const [cycles, setCycles] = useState<number>(0);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [musicEnabled, setMusicEnabled] = useState<boolean>(true);
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
   // Timing for each phase in seconds
   const timing = {
@@ -55,7 +57,19 @@ const BreathingExercise: React.FC = () => {
             case 'rest':
               if (nextCount >= timing.rest) {
                 setPhase('inhale');
-                setCycles(c => c + 1);
+                // Increment cycle count
+                setCycles(c => {
+                  const newCycles = c + 1;
+                  // Check if we've completed 4 cycles to trigger confetti
+                  if (newCycles % 4 === 0) {
+                    setShowConfetti(true);
+                    // Hide confetti after 5 seconds
+                    setTimeout(() => {
+                      setShowConfetti(false);
+                    }, 5000);
+                  }
+                  return newCycles;
+                });
                 return 0;
               }
               break;
@@ -120,6 +134,15 @@ const BreathingExercise: React.FC = () => {
   return (
     <Card className="w-full bg-white/90 backdrop-blur-sm border border-purple-100 shadow-lg">
       <CardContent className="pt-6">
+        {showConfetti && (
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            recycle={false}
+            numberOfPieces={200}
+            colors={['#9b87f5', '#7e69ab', '#c5b3e6', '#6ba6dd', '#4a85d3']}
+          />
+        )}
         <div className="flex flex-col items-center">
           <h3 className="text-xl font-semibold mb-2">Breathing Exercise</h3>
           <p className="text-sm text-gray-500 mb-6">
@@ -158,6 +181,9 @@ const BreathingExercise: React.FC = () => {
                 </p>
                 <p className="text-sm text-gray-500 mt-2">
                   Completed cycles: {cycles}
+                  {cycles > 0 && cycles % 4 === 0 && showConfetti && (
+                    <span className="ml-2 animate-pulse text-purple-500">🎉</span>
+                  )}
                 </p>
               </>
             )}

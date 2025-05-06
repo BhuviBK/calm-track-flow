@@ -9,6 +9,8 @@ import { AppProvider } from "./contexts/AppContext";
 import Index from "./pages/Index";
 import MeditatePage from "./pages/MeditatePage";
 import TrackPage from "./pages/TrackPage";
+import TodoPage from "./pages/TodoPage";
+import CalendarPage from "./pages/CalendarPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/todo" element={<TodoPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/meditate" element={<MeditatePage />} />
             <Route path="/track" element={<TrackPage />} />
             <Route path="*" element={<NotFound />} />

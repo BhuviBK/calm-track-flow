@@ -4,7 +4,12 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, X } from 'lucide-react';
+import { Check, X, Edit, Flame } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import PomodoroTimer from '@/components/PomodoroTimer';
+import confetti from 'react-confetti';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Todo {
   id: number;
@@ -15,6 +20,10 @@ interface Todo {
 const TodoPage: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState<string>('');
+  const [motivation, setMotivation] = useState<string>("You've got this! Complete your tasks one by one.");
+  const [editingMotivation, setEditingMotivation] = useState<boolean>(false);
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
+  const { toast } = useToast();
 
   const addTodo = () => {
     if (newTodo.trim() !== '') {
@@ -28,9 +37,25 @@ const TodoPage: React.FC = () => {
 
   const toggleTodo = (id: number) => {
     setTodos(
-      todos.map(todo =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+      todos.map(todo => {
+        if (todo.id === id) {
+          const newCompleted = !todo.completed;
+          
+          // Show confetti and toast if task is being completed
+          if (newCompleted) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 3000);
+            
+            toast({
+              title: "Task completed! 🔥",
+              description: "Keep up the great work!",
+            });
+          }
+          
+          return { ...todo, completed: newCompleted };
+        }
+        return todo;
+      })
     );
   };
 
@@ -44,11 +69,59 @@ const TodoPage: React.FC = () => {
     }
   };
 
+  const saveMotivation = () => {
+    setEditingMotivation(false);
+    toast({
+      title: "Motivation updated!",
+      description: "Your new motivation message has been saved.",
+    });
+  };
+
   return (
     <Layout>
+      {showConfetti && <confetti recycle={false} numberOfPieces={200} />}
+      
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Todo List</h1>
         
+        {/* Motivation Section */}
+        <Card className="border-l-4 border-l-forest-500">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg">Today's Motivation</CardTitle>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setEditingMotivation(!editingMotivation)}
+              >
+                <Edit className="w-4 h-4" />
+                <span className="sr-only">Edit motivation</span>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {editingMotivation ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={motivation}
+                  onChange={(e) => setMotivation(e.target.value)}
+                  placeholder="Enter your motivation for today..."
+                  className="min-h-[80px]"
+                />
+                <Button onClick={saveMotivation} size="sm" className="bg-forest-500 hover:bg-forest-600">
+                  Save
+                </Button>
+              </div>
+            ) : (
+              <p className="italic text-muted-foreground">{motivation}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pomodoro Timer */}
+        <PomodoroTimer />
+        
+        {/* Add Task */}
         <Card>
           <CardHeader>
             <CardTitle>Add New Task</CardTitle>
@@ -67,6 +140,7 @@ const TodoPage: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Tasks List */}
         <Card>
           <CardHeader>
             <CardTitle>Tasks</CardTitle>
@@ -85,13 +159,18 @@ const TodoPage: React.FC = () => {
                       className="flex items-center flex-1 cursor-pointer"
                       onClick={() => toggleTodo(todo.id)}
                     >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${
-                        todo.completed ? 'bg-forest-500 text-white' : 'border border-forest-500'
-                      }`}>
-                        {todo.completed && <Check className="w-4 h-4" />}
+                      <div className="mr-3">
+                        <Checkbox 
+                          checked={todo.completed}
+                          onCheckedChange={() => toggleTodo(todo.id)}
+                          className={todo.completed ? 'bg-forest-500 text-white' : ''}
+                        />
                       </div>
-                      <span className={todo.completed ? 'line-through text-muted-foreground' : ''}>
+                      <span className={todo.completed ? 'line-through text-muted-foreground flex items-center' : 'flex items-center'}>
                         {todo.text}
+                        {todo.completed && (
+                          <Flame className="w-4 h-4 ml-2 text-amber-500" />
+                        )}
                       </span>
                     </div>
                     <Button 

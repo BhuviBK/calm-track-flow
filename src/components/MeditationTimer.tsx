@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Volume2, VolumeX } from 'lucide-react';
-import { playBellSound, toggleAmbientMusic, stopAllSounds } from '@/utils/audioUtils';
+import { playBellSound, toggleAmbientMusic, stopAllSounds, preloadAudio } from '@/utils/audioUtils';
 
 const MeditationTimer: React.FC = () => {
   const [duration, setDuration] = useState<number>(5);
@@ -15,6 +14,11 @@ const MeditationTimer: React.FC = () => {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [completed, setCompleted] = useState<boolean>(false);
   const [musicEnabled, setMusicEnabled] = useState<boolean>(true);
+
+  // Preload audio when component mounts
+  useEffect(() => {
+    preloadAudio();
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -37,17 +41,21 @@ const MeditationTimer: React.FC = () => {
 
   useEffect(() => {
     // Control ambient music based on meditation state and music toggle
-    if (isActive && musicEnabled) {
+    console.log("Timer music state changed:", isActive, !isPaused, musicEnabled);
+    if (isActive && !isPaused && musicEnabled) {
       toggleAmbientMusic(true);
     } else {
       toggleAmbientMusic(false);
     }
-    
+  }, [isActive, isPaused, musicEnabled]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      // Clean up when component unmounts
+      console.log("Timer component unmounting");
       stopAllSounds();
     };
-  }, [isActive, musicEnabled]);
+  }, []);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -63,7 +71,6 @@ const MeditationTimer: React.FC = () => {
 
   const pauseTimer = () => {
     setIsPaused(!isPaused);
-    toggleAmbientMusic(!isPaused && musicEnabled);
   };
 
   const resetTimer = () => {
@@ -75,10 +82,8 @@ const MeditationTimer: React.FC = () => {
   };
 
   const toggleMusic = () => {
+    console.log("Timer music toggle clicked");
     setMusicEnabled(!musicEnabled);
-    if (isActive) {
-      toggleAmbientMusic(!musicEnabled);
-    }
   };
 
   const progress = timeLeft !== null ? ((duration * 60 - timeLeft) / (duration * 60)) * 100 : 0;

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Volume2, VolumeX } from 'lucide-react';
-import { playBreathSound, toggleAmbientMusic, stopAllSounds } from '@/utils/audioUtils';
+import { playBreathSound, toggleAmbientMusic, stopAllSounds, preloadAudio } from '@/utils/audioUtils';
 import Confetti from 'react-confetti';
 
 const BreathingExercise: React.FC = () => {
@@ -25,6 +25,11 @@ const BreathingExercise: React.FC = () => {
     exhale: 6,
     rest: 2,
   };
+  
+  // Preload audio when component mounts
+  useEffect(() => {
+    preloadAudio();
+  }, []);
   
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -94,6 +99,7 @@ const BreathingExercise: React.FC = () => {
   
   // Handle ambient music
   useEffect(() => {
+    console.log("Music state changed:", isActive, musicEnabled);
     if (isActive && musicEnabled) {
       toggleAmbientMusic(true);
     } else {
@@ -101,9 +107,17 @@ const BreathingExercise: React.FC = () => {
     }
     
     return () => {
-      stopAllSounds();
+      // Cleanup only when component unmounts, not on every effect change
     };
   }, [isActive, musicEnabled]);
+  
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      console.log("Component unmounting, stopping all sounds");
+      stopAllSounds();
+    };
+  }, []);
   
   const toggleActive = () => {
     if (!isActive) {
@@ -211,10 +225,9 @@ const BreathingExercise: React.FC = () => {
                 id="music-toggle" 
                 checked={musicEnabled} 
                 onCheckedChange={() => {
+                  console.log("Music toggle clicked, current state:", musicEnabled);
                   setMusicEnabled(!musicEnabled);
-                  if (isActive) {
-                    toggleAmbientMusic(!musicEnabled);
-                  }
+                  // We handle the actual toggling in the effect to avoid race conditions
                 }}
               />
             </div>

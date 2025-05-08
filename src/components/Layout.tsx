@@ -1,12 +1,16 @@
 
 import React from 'react';
 import Navigation from './Navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-green-50 dark:from-gray-900 dark:to-forest-900">
       <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row">
@@ -20,7 +24,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Navigation />
         </div>
         <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden overflow-y-auto px-2 md:px-6">
-          <div className="max-w-full md:pr-4">
+          <div className={cn("max-w-full", isMobile ? "pb-16" : "md:pr-4")}>
             {children}
           </div>
         </main>

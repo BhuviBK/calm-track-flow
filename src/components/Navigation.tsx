@@ -1,11 +1,12 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, Clock, Activity, Check, Dumbbell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
+  const isMobile = useIsMobile();
   
   const navItems = [
     { path: '/', icon: <Home className="w-5 h-5" />, label: 'Home' },
@@ -28,20 +29,23 @@ const Navigation: React.FC = () => {
       key={item.path}
       to={item.path}
       className={cn(
-        "flex items-center gap-2 px-4 py-3 rounded-lg transition-colors w-full",
+        "flex items-center gap-2 rounded-lg transition-colors w-full",
+        isMobile ? "px-2 py-2" : "px-4 py-3",
         location.pathname === item.path
           ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white w-full"
           : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
       )}
     >
-      {item.icon}
-      <span className="hidden md:inline">{item.label}</span>
+      <div className={cn("flex items-center justify-center", isMobile && "mx-auto")}>
+        {item.icon}
+        <span className={cn("hidden md:inline ml-2")}>{item.label}</span>
+      </div>
     </Link>
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg py-3 md:relative md:shadow-none md:py-0 md:mt-8 z-10">
-      <div className="flex justify-around md:flex-col md:gap-6 md:items-start">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg md:relative md:shadow-none md:py-0 md:mt-8 z-10">
+      <div className="flex justify-around px-1 py-3 md:px-0 md:flex-col md:gap-6 md:items-start">
         {/* Other Items */}
         {otherItems.map((item) => (
           <NavItem key={item.path} item={item} />

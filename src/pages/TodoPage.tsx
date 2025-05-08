@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import PomodoroTimer from '@/components/PomodoroTimer';
 import ReactConfetti from 'react-confetti';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ExerciseTimer from '@/components/ExerciseTimer';
 
 interface Todo {
   id: number;
@@ -23,6 +26,29 @@ const TodoPage: React.FC = () => {
   const [editingMotivation, setEditingMotivation] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   const { toast } = useToast();
+
+  // Load todos from localStorage on component mount
+  useEffect(() => {
+    const savedTodos = localStorage.getItem('todos');
+    if (savedTodos) {
+      setTodos(JSON.parse(savedTodos));
+    }
+    
+    const savedMotivation = localStorage.getItem('motivation');
+    if (savedMotivation) {
+      setMotivation(savedMotivation);
+    }
+  }, []);
+
+  // Save todos to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }, [todos]);
+
+  // Save motivation to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('motivation', motivation);
+  }, [motivation]);
 
   const addTodo = () => {
     if (newTodo.trim() !== '') {
@@ -70,6 +96,7 @@ const TodoPage: React.FC = () => {
 
   const saveMotivation = () => {
     setEditingMotivation(false);
+    localStorage.setItem('motivation', motivation);
     toast({
       title: "Motivation updated!",
       description: "Your new motivation message has been saved.",
@@ -117,8 +144,19 @@ const TodoPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Pomodoro Timer */}
-        <PomodoroTimer />
+        {/* Tabs for Pomodoro and Exercise */}
+        <Tabs defaultValue="pomodoro" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="pomodoro" className="flex-1">Pomodoro Timer</TabsTrigger>
+            <TabsTrigger value="exercise" className="flex-1">Exercise Timer</TabsTrigger>
+          </TabsList>
+          <TabsContent value="pomodoro">
+            <PomodoroTimer />
+          </TabsContent>
+          <TabsContent value="exercise">
+            <ExerciseTimer />
+          </TabsContent>
+        </Tabs>
         
         {/* Add Task */}
         <Card>

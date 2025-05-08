@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface MoodData {
   date: Date;
@@ -17,6 +19,7 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onMoodSubmit }) => {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [date, setDate] = useState<Date>(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const moods = [
     { value: 1, emoji: '😞', label: 'Very Bad' },
@@ -39,16 +42,43 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onMoodSubmit }) => {
     }
   };
 
+  const nextMonth = () => {
+    const next = new Date(currentMonth);
+    next.setMonth(next.getMonth() + 1);
+    setCurrentMonth(next);
+  };
+
+  const prevMonth = () => {
+    const prev = new Date(currentMonth);
+    prev.setMonth(prev.getMonth() - 1);
+    setCurrentMonth(prev);
+  };
+
   return (
     <div className="meditation-card">
       <h2 className="text-xl font-semibold mb-4">How are you feeling today?</h2>
       
-      <div className="mb-6">
+      <div className="mb-6 w-full max-w-sm mx-auto">
+        <div className="flex items-center justify-between mb-2">
+          <Button variant="outline" size="icon" onClick={prevMonth}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="font-medium">
+            {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </div>
+          <Button variant="outline" size="icon" onClick={nextMonth}>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
         <Calendar
           mode="single"
           selected={date}
           onSelect={(date) => date && setDate(date)}
-          className="p-3 pointer-events-auto rounded-md border"
+          className="p-2 pointer-events-auto rounded-md border w-full"
+          month={currentMonth}
+          onMonthChange={setCurrentMonth}
+          numberOfMonths={1}
+          showOutsideDays={false}
         />
       </div>
       

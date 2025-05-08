@@ -1,6 +1,9 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface MoodData {
   date: Date;
@@ -13,154 +16,140 @@ interface MoodChartProps {
 }
 
 const MoodChart: React.FC<MoodChartProps> = ({ moodData }) => {
-  // Get the last 14 days for the chart
-  const last14Days = [...Array(14)].map((_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (13 - i));
-    date.setHours(0, 0, 0, 0);
-    return date;
+  const [visibleRange, setVisibleRange] = useState<{ start: number, end: number }>({
+    start: 0,
+    end: 5
   });
   
-  const moodByDay = last14Days.map(day => {
-    const dayStr = day.toISOString().split('T')[0];
-    const dayMood = moodData.find(mood => {
-      const moodDate = new Date(mood.date);
-      return moodDate.toISOString().split('T')[0] === dayStr;
-    });
-    
-    return {
-      day: day.getDate(),
-      month: day.toLocaleDateString('en-US', { month: 'short' }),
-      mood: dayMood ? dayMood.mood : null,
-      note: dayMood ? dayMood.note : ''
-    };
-  });
+  const sortedData = [...moodData].sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
   
-  // Calculate average mood if there's data
-  const moodValues = moodData.map(d => d.mood);
-  const avgMood = moodValues.length
-    ? Number((moodValues.reduce((acc, val) => acc + val, 0) / moodValues.length).toFixed(1))
-    : 0;
+  const chartData = sortedData.map(entry => ({
+    date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    mood: entry.mood,
+    timestamp: new Date(entry.date).getTime(),
+    note: entry.note
+  }));
   
-  // Get mood emoji
-  const getMoodEmoji = (mood: number | null): string => {
-    if (mood === null) return '';
-    
-    switch (mood) {
-      case 1: return '😞';
-      case 2: return '😔';
-      case 3: return '😐';
-      case 4: return '🙂';
-      case 5: return '😊';
-      default: return '';
+  const visibleData = chartData.slice(visibleRange.start, visibleRange.end);
+  
+  const showNext = () => {
+    if (visibleRange.end < chartData.length) {
+      setVisibleRange({
+        start: visibleRange.start + 1,
+        end: visibleRange.end + 1
+      });
     }
   };
   
-  // Get color for mood
-  const getMoodColor = (mood: number | null): string => {
-    if (mood === null) return 'bg-gray-200';
-    
-    switch (mood) {
-      case 1: return 'bg-red-400';
-      case 2: return 'bg-orange-400';
-      case 3: return 'bg-yellow-400';
-      case 4: return 'bg-green-300';
-      case 5: return 'bg-green-500';
-      default: return 'bg-gray-200';
+  const showPrevious = () => {
+    if (visibleRange.start > 0) {
+      setVisibleRange({
+        start: visibleRange.start - 1,
+        end: visibleRange.end - 1
+      });
     }
+  };
+  
+  useEffect(() => {
+    // Reset to show the 5 most recent entries when mood data changes
+    if (chartData.length > 0) {
+      const end = chartData.length;
+      const start = Math.max(0, end - 5);
+      setVisibleRange({ start, end });
+    }
+  }, [moodData.length]);
+  
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white dark:bg-gray-800 p-3 rounded shadow-lg border">
+          <p className="font-medium">{data.date}</p>
+          <p>Mood: {getMoodEmoji(data.mood)}</p>
+          {data.note && <p className="text-sm mt-1">{data.note}</p>}
+        </div>
+      );
+    }
+    return null;
+  };
+  
+  const getMoodEmoji = (value: number) => {
+    const emojis = ['😞', '😔', '😐', '🙂', '😊'];
+    return emojis[value - 1] || '';
   };
   
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Mood Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-end h-44 gap-1">
-            {moodByDay.map((day, i) => (
-              <div 
-                key={i} 
-                className="flex-1 flex flex-col items-center"
-                title={day.note || 'No mood recorded'}
-              >
-                <div className="h-32 flex items-end justify-center w-full">
-                  {day.mood !== null && (
-                    <div 
-                      className={`w-full ${getMoodColor(day.mood)} rounded-t-sm relative`} 
-                      style={{ height: `${(day.mood / 5) * 100}%` }}
-                    >
-                      <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-lg">
-                        {getMoodEmoji(day.mood)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs mt-1 text-center w-full">
-                  <div className="font-medium">{day.day}</div>
-                  {i === 0 || day.day === 1 ? <div className="text-[10px] text-gray-500">{day.month}</div> : null}
-                </div>
-              </div>
-            ))}
+    <Card className="p-4">
+      {moodData.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground">No mood data recorded yet</p>
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-between items-center mb-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={showPrevious}
+              disabled={visibleRange.start <= 0}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">
+              Showing {visibleRange.start + 1} - {Math.min(visibleRange.end, chartData.length)} of {chartData.length}
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={showNext}
+              disabled={visibleRange.end >= chartData.length}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Average Mood
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <div className="text-2xl font-bold mr-2">{avgMood}</div>
-              <div className="text-xl">{getMoodEmoji(Math.round(avgMood))}</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Entries
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{moodData.length}</div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {moodData.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-md">Recent Entries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
-              {[...moodData]
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 3)
-                .map((entry, i) => (
-                  <div key={i} className="flex items-start gap-3 pb-3 border-b last:border-b-0">
-                    <div className="text-xl">{getMoodEmoji(entry.mood)}</div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">
-                        {new Date(entry.date).toLocaleDateString()}
-                      </div>
-                      {entry.note && (
-                        <div className="text-sm text-gray-500 mt-1">{entry.note}</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
+          
+          <div className="h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={visibleData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorMood" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4a85d3" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#4a85d3" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <XAxis 
+                  dataKey="date"
+                  tick={{ fontSize: 12 }}
+                  tickMargin={5}
+                />
+                <YAxis 
+                  domain={[0, 5]}
+                  ticks={[1, 2, 3, 4, 5]}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => getMoodEmoji(value)}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area 
+                  type="monotone"
+                  dataKey="mood"
+                  stroke="#4a85d3"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorMood)"
+                  activeDot={{ r: 6 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       )}
-    </div>
+    </Card>
   );
 };
 

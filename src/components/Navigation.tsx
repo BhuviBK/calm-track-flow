@@ -29,14 +29,14 @@ const Navigation: React.FC = () => {
       key={item.path}
       to={item.path}
       className={cn(
-        "flex items-center gap-2 rounded-lg transition-colors w-full",
-        isMobile ? "px-2 py-2" : "px-4 py-3",
+        "flex items-center justify-center rounded-lg transition-colors",
+        isMobile ? "px-2 py-2 w-10 h-10" : "px-3 py-2 w-full",
         location.pathname === item.path
-          ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white w-full"
+          ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white"
           : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
       )}
     >
-      <div className={cn("flex items-center justify-center", isMobile && "mx-auto")}>
+      <div className={cn("flex items-center justify-center", isMobile ? "mx-auto" : "")}>
         {item.icon}
         <span className={cn("hidden md:inline ml-2")}>{item.label}</span>
       </div>
@@ -45,7 +45,7 @@ const Navigation: React.FC = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg md:relative md:shadow-none md:py-0 md:mt-8 z-10">
-      <div className="flex justify-around px-1 py-3 md:px-0 md:flex-col md:gap-6 md:items-start">
+      <div className="flex justify-around px-2 py-3 md:px-0 md:flex-col md:gap-2 md:items-start">
         {/* Other Items */}
         {otherItems.map((item) => (
           <NavItem key={item.path} item={item} />
@@ -66,7 +66,7 @@ const Navigation: React.FC = () => {
         )}
         
         {/* On mobile, show task items directly */}
-        <div className="md:hidden flex gap-1">
+        <div className="md:hidden flex gap-2">
           {taskItems.map((item) => (
             <NavItem key={item.path} item={item} />
           ))}
@@ -87,7 +87,7 @@ const Navigation: React.FC = () => {
         )}
         
         {/* On mobile, show wellbeing items directly */}
-        <div className="md:hidden flex gap-1">
+        <div className="md:hidden flex gap-2">
           {wellbeingItems.map((item) => (
             <NavItem key={item.path} item={item} />
           ))}

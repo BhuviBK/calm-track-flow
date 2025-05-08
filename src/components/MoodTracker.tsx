@@ -54,27 +54,52 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onMoodSubmit }) => {
     setCurrentMonth(prev);
   };
 
+  const previousDay = () => {
+    const prev = new Date(date);
+    prev.setDate(date.getDate() - 1);
+    setDate(prev);
+  };
+  
+  const nextDay = () => {
+    const next = new Date(date);
+    next.setDate(date.getDate() + 1);
+    setDate(next);
+  };
+
   return (
     <div className="meditation-card">
       <h2 className="text-xl font-semibold mb-4">How are you feeling today?</h2>
       
       <div className="mb-6 w-full max-w-sm mx-auto">
-        <div className="flex items-center justify-between mb-2">
-          <Button variant="outline" size="icon" onClick={prevMonth}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="font-medium">
-            {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="icon" onClick={previousDay} title="Previous day">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={nextDay} title="Next day">
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="outline" size="icon" onClick={nextMonth}>
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          
+          <div className="font-medium">
+            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="icon" onClick={prevMonth} title="Previous month">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={nextMonth} title="Next month">
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
+        
         <Calendar
           mode="single"
           selected={date}
           onSelect={(date) => date && setDate(date)}
-          className="p-2 pointer-events-auto rounded-md border w-full"
+          className="p-2 pointer-events-auto rounded-md border w-full max-w-72 mx-auto"
           month={currentMonth}
           onMonthChange={setCurrentMonth}
           numberOfMonths={1}
@@ -113,7 +138,7 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onMoodSubmit }) => {
         <button
           type="submit"
           disabled={selectedMood === null}
-          className="w-full bg-calm-500 hover:bg-calm-600 text-white font-medium py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-forest-500 hover:bg-forest-600 text-white font-medium py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Save Mood
         </button>

@@ -11,6 +11,7 @@ import MeditatePage from "./pages/MeditatePage";
 import TrackPage from "./pages/TrackPage";
 import TodoPage from "./pages/TodoPage";
 import CalendarPage from "./pages/CalendarPage";
+import ExercisePage from "./pages/ExercisePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/todo" element={<TodoPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/meditate" element={<MeditatePage />} />
+            <Route path="/exercise" element={<ExercisePage />} />
             <Route path="/track" element={<TrackPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

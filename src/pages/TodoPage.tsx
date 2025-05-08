@@ -52,40 +52,45 @@ const TodoPage: React.FC = () => {
 
   const addTodo = () => {
     if (newTodo.trim() !== '') {
-      setTodos([
+      const newTodos = [
         ...todos,
         { id: Date.now(), text: newTodo, completed: false }
-      ]);
+      ];
+      setTodos(newTodos);
+      localStorage.setItem('todos', JSON.stringify(newTodos));
       setNewTodo('');
     }
   };
 
   const toggleTodo = (id: number) => {
-    setTodos(
-      todos.map(todo => {
-        if (todo.id === id) {
-          const newCompleted = !todo.completed;
+    const updatedTodos = todos.map(todo => {
+      if (todo.id === id) {
+        const newCompleted = !todo.completed;
+        
+        // Show confetti and toast if task is being completed
+        if (newCompleted) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
           
-          // Show confetti and toast if task is being completed
-          if (newCompleted) {
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 3000);
-            
-            toast({
-              title: "Task completed! 🔥",
-              description: "Keep up the great work!",
-            });
-          }
-          
-          return { ...todo, completed: newCompleted };
+          toast({
+            title: "Task completed! 🔥",
+            description: "Keep up the great work!",
+          });
         }
-        return todo;
-      })
-    );
+        
+        return { ...todo, completed: newCompleted };
+      }
+      return todo;
+    });
+    
+    setTodos(updatedTodos);
+    localStorage.setItem('todos', JSON.stringify(updatedTodos));
   };
 
   const deleteTodo = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+    const filteredTodos = todos.filter(todo => todo.id !== id);
+    setTodos(filteredTodos);
+    localStorage.setItem('todos', JSON.stringify(filteredTodos));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -19,8 +19,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <Navigation />
         </div>
-        <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden px-2 md:px-6">
-          {children}
+        <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden overflow-y-auto px-2 md:px-6">
+          <div className="max-w-full md:pr-4">
+            {children}
+          </div>
         </main>
       </div>
     </div>

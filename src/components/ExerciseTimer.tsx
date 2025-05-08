@@ -6,6 +6,7 @@ import { Play, Pause, SkipForward, RotateCcw, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Confetti from 'react-confetti';
 
 interface Exercise {
   id: number;
@@ -31,6 +32,7 @@ const ExerciseTimer: React.FC = () => {
   const [currentSet, setCurrentSet] = useState(1);
   const [isRest, setIsRest] = useState(false);
   const [restSeconds, setRestSeconds] = useState(10); // 10 seconds rest
+  const [showConfetti, setShowConfetti] = useState(false);
   const { toast } = useToast();
   
   const totalSets = 3;
@@ -38,6 +40,15 @@ const ExerciseTimer: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('exercises', JSON.stringify(exercises));
   }, [exercises]);
+
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -60,6 +71,7 @@ const ExerciseTimer: React.FC = () => {
               });
             } else {
               // All sets completed for this exercise
+              setShowConfetti(true);
               const newExercises = [...exercises];
               newExercises[currentExerciseIndex].completed = true;
               setExercises(newExercises);
@@ -89,6 +101,7 @@ const ExerciseTimer: React.FC = () => {
             // Exercise set completed, start rest period
             setIsRest(true);
             setRestSeconds(10);
+            setShowConfetti(true);
             
             toast({
               title: "Rest time!",
@@ -157,6 +170,15 @@ const ExerciseTimer: React.FC = () => {
 
   return (
     <Card className="w-full">
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.2}
+        />
+      )}
       <CardHeader>
         <CardTitle className="text-xl font-bold">
           {isRest ? "Rest Period" : `${exercises[currentExerciseIndex]?.name || 'Exercise'}`}

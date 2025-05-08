@@ -7,7 +7,7 @@ import ExerciseTimer from '@/components/ExerciseTimer';
 const ExercisePage: React.FC = () => {
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-20 md:pb-0">
         <h1 className="text-2xl font-bold">Exercise Tracker</h1>
         <p className="text-muted-foreground">
           Track your workouts and stay consistent with your exercise routine.

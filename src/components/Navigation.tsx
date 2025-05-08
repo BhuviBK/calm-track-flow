@@ -28,9 +28,9 @@ const Navigation: React.FC = () => {
       key={item.path}
       to={item.path}
       className={cn(
-        "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors w-full",
+        "flex items-center gap-2 px-4 py-3 rounded-lg transition-colors w-full",
         location.pathname === item.path
-          ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white"
+          ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white w-full"
           : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
       )}
     >
@@ -40,7 +40,7 @@ const Navigation: React.FC = () => {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg py-2 md:relative md:shadow-none md:py-0 md:mt-8 z-10">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg py-3 md:relative md:shadow-none md:py-0 md:mt-8 z-10">
       <div className="flex justify-around md:flex-col md:gap-6 md:items-start">
         {/* Other Items */}
         {otherItems.map((item) => (

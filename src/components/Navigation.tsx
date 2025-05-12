@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, Clock, Activity, Check, Dumbbell } from 'lucide-react';
@@ -29,89 +30,46 @@ const Navigation: React.FC = () => {
       key={item.path}
       to={item.path}
       className={cn(
-        "flex items-center justify-center rounded-lg transition-colors",
-        isMobile ? "w-full h-10" : "px-3 py-2 w-full",
+        "flex items-center rounded-lg transition-colors",
+        isMobile ? "px-3 py-2 w-full mb-1" : "px-3 py-2 w-full",
         location.pathname === item.path
           ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white"
           : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
       )}
     >
-      <div className="flex items-center justify-center">
+      <div className="flex items-center">
         {item.icon}
-        <span className={cn("hidden md:inline ml-2")}>{item.label}</span>
+        <span className="ml-2">{item.label}</span>
       </div>
     </Link>
   );
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg md:relative md:shadow-none md:py-0 md:mt-8 z-10">
-      {/* Desktop Navigation */}
-      <div className="hidden md:flex md:flex-col md:gap-2 md:items-start">
-        {/* Other Items */}
-        {otherItems.map((item) => (
+  
+  // Common navigation groups that work both for mobile sidebar and desktop
+  const renderNavGroup = (title: string, items: typeof navItems) => (
+    <div className="w-full mb-4">
+      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        {title}
+      </div>
+      <div className="flex flex-col gap-1 w-full mt-1">
+        {items.map((item) => (
           <NavItem key={item.path} item={item} />
         ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <nav className={cn("z-10", isMobile ? "" : "md:relative md:shadow-none md:py-0 md:mt-8")}>
+      {/* Navigation Items */}
+      <div className="flex flex-col">
+        {/* Home Items */}
+        {otherItems.length > 0 && renderNavGroup("Home", otherItems)}
         
         {/* Task Management Group */}
-        {taskItems.length > 0 && (
-          <div className="w-full">
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Tasks
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              {taskItems.map((item) => (
-                <NavItem key={item.path} item={item} />
-              ))}
-            </div>
-          </div>
-        )}
+        {taskItems.length > 0 && renderNavGroup("Tasks", taskItems)}
         
         {/* Wellbeing Group */}
-        {wellbeingItems.length > 0 && (
-          <div className="w-full">
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Wellbeing
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              {wellbeingItems.map((item) => (
-                <NavItem key={item.path} item={item} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Mobile Navigation - Redesigned with categories */}
-      <div className="md:hidden grid grid-cols-3 gap-1 px-1 py-2">
-        {/* Home Category */}
-        <div className="flex flex-col items-center">
-          <div className="text-xs font-semibold text-gray-500 mb-1 text-center">Home</div>
-          <div className="w-full px-1">
-            {otherItems.map((item) => (
-              <NavItem key={item.path} item={item} />
-            ))}
-          </div>
-        </div>
-        
-        {/* Task Category */}
-        <div className="flex flex-col items-center">
-          <div className="text-xs font-semibold text-gray-500 mb-1 text-center">Tasks</div>
-          <div className="flex flex-col gap-1 w-full px-1">
-            {taskItems.map((item) => (
-              <NavItem key={item.path} item={item} />
-            ))}
-          </div>
-        </div>
-        
-        {/* Wellbeing Category */}
-        <div className="flex flex-col items-center">
-          <div className="text-xs font-semibold text-gray-500 mb-1 text-center">Wellbeing</div>
-          <div className="flex flex-col gap-1 w-full px-1">
-            {wellbeingItems.map((item) => (
-              <NavItem key={item.path} item={item} />
-            ))}
-          </div>
-        </div>
+        {wellbeingItems.length > 0 && renderNavGroup("Wellbeing", wellbeingItems)}
       </div>
     </nav>
   );

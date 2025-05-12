@@ -24,7 +24,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Navigation />
         </div>
         <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden overflow-y-auto px-2 md:px-6">
-          <div className={cn("max-w-full", isMobile ? "pb-16" : "md:pr-4")}>
+          <div className={cn("max-w-full", isMobile ? "pb-24" : "md:pr-4")}>
             {children}
           </div>
         </main>

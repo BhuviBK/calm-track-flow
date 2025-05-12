@@ -30,13 +30,13 @@ const Navigation: React.FC = () => {
       to={item.path}
       className={cn(
         "flex items-center justify-center rounded-lg transition-colors",
-        isMobile ? "px-2 py-2 w-10 h-10" : "px-3 py-2 w-full",
+        isMobile ? "w-full h-10" : "px-3 py-2 w-full",
         location.pathname === item.path
           ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white"
           : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
       )}
     >
-      <div className={cn("flex items-center justify-center", isMobile ? "mx-auto" : "")}>
+      <div className="flex items-center justify-center">
         {item.icon}
         <span className={cn("hidden md:inline ml-2")}>{item.label}</span>
       </div>
@@ -45,7 +45,8 @@ const Navigation: React.FC = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-lg md:relative md:shadow-none md:py-0 md:mt-8 z-10">
-      <div className="flex justify-around px-2 py-3 md:px-0 md:flex-col md:gap-2 md:items-start">
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex md:flex-col md:gap-2 md:items-start">
         {/* Other Items */}
         {otherItems.map((item) => (
           <NavItem key={item.path} item={item} />
@@ -53,7 +54,7 @@ const Navigation: React.FC = () => {
         
         {/* Task Management Group */}
         {taskItems.length > 0 && (
-          <div className="hidden md:block w-full">
+          <div className="w-full">
             <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Tasks
             </div>
@@ -65,16 +66,9 @@ const Navigation: React.FC = () => {
           </div>
         )}
         
-        {/* On mobile, show task items directly */}
-        <div className="md:hidden flex gap-2">
-          {taskItems.map((item) => (
-            <NavItem key={item.path} item={item} />
-          ))}
-        </div>
-        
         {/* Wellbeing Group */}
         {wellbeingItems.length > 0 && (
-          <div className="hidden md:block w-full">
+          <div className="w-full">
             <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Wellbeing
             </div>
@@ -85,12 +79,38 @@ const Navigation: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+      
+      {/* Mobile Navigation - Redesigned with categories */}
+      <div className="md:hidden grid grid-cols-3 gap-1 px-1 py-2">
+        {/* Home Category */}
+        <div className="flex flex-col items-center">
+          <div className="text-xs font-semibold text-gray-500 mb-1 text-center">Home</div>
+          <div className="w-full px-1">
+            {otherItems.map((item) => (
+              <NavItem key={item.path} item={item} />
+            ))}
+          </div>
+        </div>
         
-        {/* On mobile, show wellbeing items directly */}
-        <div className="md:hidden flex gap-2">
-          {wellbeingItems.map((item) => (
-            <NavItem key={item.path} item={item} />
-          ))}
+        {/* Task Category */}
+        <div className="flex flex-col items-center">
+          <div className="text-xs font-semibold text-gray-500 mb-1 text-center">Tasks</div>
+          <div className="flex flex-col gap-1 w-full px-1">
+            {taskItems.map((item) => (
+              <NavItem key={item.path} item={item} />
+            ))}
+          </div>
+        </div>
+        
+        {/* Wellbeing Category */}
+        <div className="flex flex-col items-center">
+          <div className="text-xs font-semibold text-gray-500 mb-1 text-center">Wellbeing</div>
+          <div className="flex flex-col gap-1 w-full px-1">
+            {wellbeingItems.map((item) => (
+              <NavItem key={item.path} item={item} />
+            ))}
+          </div>
         </div>
       </div>
     </nav>

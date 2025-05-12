@@ -1,0 +1,85 @@
+
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { v4 as uuidv4 } from 'uuid';
+
+interface Task {
+  id: string;
+  title: string;
+  time: string;
+  completed: boolean;
+}
+
+interface TaskCardFormProps {
+  onAddTask: (task: Task) => void;
+  onCancel: () => void;
+}
+
+const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
+  const [title, setTitle] = useState('');
+  const [time, setTime] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title.trim()) return;
+    
+    const newTask: Task = {
+      id: uuidv4(),
+      title: title.trim(),
+      time: time || 'Anytime',
+      completed: false
+    };
+    
+    onAddTask(newTask);
+    setTitle('');
+    setTime('');
+  };
+
+  return (
+    <Card>
+      <form onSubmit={handleSubmit}>
+        <CardHeader>
+          <CardTitle className="text-lg">Add New Task</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="title" className="text-sm font-medium">
+              Task Title
+            </label>
+            <Input
+              id="title"
+              placeholder="Enter task title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="time" className="text-sm font-medium">
+              Time (optional)
+            </label>
+            <Input
+              id="time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-calm-500 hover:bg-calm-600">
+            Add Task
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
+  );
+};
+
+export default TaskCardForm;

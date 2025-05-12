@@ -7,45 +7,92 @@ import { Link } from 'react-router-dom';
 import TaskCardList from '@/components/TaskCardList';
 
 const Index: React.FC = () => {
-  const { meditationSessions, moodEntries } = useAppContext();
+  const { expenses, moodEntries } = useAppContext();
 
   return (
     <Layout>
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Welcome to ZenMind</h1>
-        <p className="text-gray-600 dark:text-gray-300">Your daily task and wellbeing companion</p>
+        <p className="text-gray-600 dark:text-gray-300">Your daily task and expense tracker</p>
       </div>
 
-      {meditationSessions.length === 0 && moodEntries.length === 0 ? (
-        <div className="meditation-card">
-          <div className="text-center py-10">
-            <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-gentle">
-              <div className="w-16 h-16 bg-gradient-to-br from-calm-400 to-purple-400 rounded-full"></div>
-            </div>
-            <h2 className="text-2xl font-semibold mb-4">Begin Your Daily Tasks</h2>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Start adding tasks to organize your day and improve productivity.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      {expenses.length === 0 && moodEntries.length === 0 ? (
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="task-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div className="text-center py-6">
+              <div className="w-20 h-20 bg-calm-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-calm-400 to-purple-400 rounded-full"></div>
+              </div>
+              <h2 className="text-xl font-semibold mb-3">Plan Your Day</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Start adding tasks to organize your day and improve productivity.
+              </p>
               <Button asChild className="bg-calm-500 hover:bg-calm-600">
-                <Link to="/todo">Plan Your Day</Link>
+                <Link to="/todo">Add Tasks</Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/meditate">Take a Meditation Break</Link>
+            </div>
+          </div>
+          
+          <div className="expense-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div className="text-center py-6">
+              <div className="w-20 h-20 bg-forest-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-forest-400 to-teal-400 rounded-full"></div>
+              </div>
+              <h2 className="text-xl font-semibold mb-3">Track Expenses</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Record your daily spending and visualize your financial habits.
+              </p>
+              <Button asChild className="bg-forest-500 hover:bg-forest-600">
+                <Link to="/expense">Track Expenses</Link>
               </Button>
             </div>
           </div>
         </div>
       ) : (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Today's Tasks</h2>
-            <Button size="sm" className="bg-calm-500 hover:bg-calm-600">
-              <Link to="/todo">View All Tasks</Link>
-            </Button>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Today's Tasks</h2>
+              <Button size="sm" className="bg-calm-500 hover:bg-calm-600">
+                <Link to="/todo">View All Tasks</Link>
+              </Button>
+            </div>
+            <TaskCardList />
           </div>
           
-          <TaskCardList />
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Recent Expenses</h2>
+              <Button size="sm" className="bg-forest-500 hover:bg-forest-600">
+                <Link to="/expense">View All Expenses</Link>
+              </Button>
+            </div>
+            {expenses.length > 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <ul className="space-y-2">
+                  {expenses.slice(0, 5).map((expense) => (
+                    <li key={expense.id} className="flex justify-between items-center border-b pb-2">
+                      <div>
+                        <span className="font-medium">{expense.category}</span>
+                        <p className="text-sm text-gray-500">{expense.description || 'No description'}</p>
+                      </div>
+                      <span className="font-semibold">₹{expense.amount.toFixed(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 text-right">
+                  <span className="font-bold">Total: ₹{expenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(2)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+                <p className="text-gray-500 mb-4">No expenses recorded yet</p>
+                <Button asChild className="bg-forest-500 hover:bg-forest-600">
+                  <Link to="/expense">Add Your First Expense</Link>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </Layout>

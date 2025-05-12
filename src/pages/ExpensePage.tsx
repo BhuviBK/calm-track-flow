@@ -22,17 +22,20 @@ const ExpensePage: React.FC = () => {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1">
           <h2 className="text-xl font-semibold mb-4">Add Expense</h2>
           <ExpenseTracker />
         </div>
         
-        <div className="md:col-span-2">
+        <div className="lg:col-span-3">
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold mb-4">Your Expenses</h2>
-            <DailyExpenseChart />
-            <MonthlyExpenseChart />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <DailyExpenseChart />
+              <div>
+                <MonthlyExpenseChart />
+              </div>
+            </div>
             <ExpenseList />
           </div>
         </div>

@@ -28,7 +28,7 @@ const ExpenseList: React.FC = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-xl">Recent Expenses</CardTitle>
         <div className="text-xl font-semibold text-right">
-          Total: ${totalAmount.toFixed(2)}
+          Total: ₹{totalAmount.toFixed(2)}
         </div>
       </CardHeader>
       <CardContent>
@@ -56,7 +56,7 @@ const ExpenseList: React.FC = () => {
                     <TableCell className="max-w-[200px] truncate">
                       {expense.description || '-'}
                     </TableCell>
-                    <TableCell className="text-right">${expense.amount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">₹{expense.amount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Button 
                         variant="ghost" 

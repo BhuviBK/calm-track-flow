@@ -53,7 +53,7 @@ const DailyExpenseChart: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>Today's Expenses</span>
-          <span className="text-xl">${todayTotal.toFixed(2)}</span>
+          <span className="text-xl">₹{todayTotal.toFixed(2)}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -84,7 +84,7 @@ const DailyExpenseChart: React.FC = () => {
                   height={70}
                 />
                 <YAxis />
-                <ChartTooltip content={<ChartTooltipContent labelKey="category" />} />
+                <ChartTooltip content={<ChartTooltipContent labelKey="category" formatter={(value) => `₹${value}`} />} />
                 <Bar dataKey="amount" name="Amount" fill="var(--color-amount)" />
               </BarChart>
             </ChartContainer>

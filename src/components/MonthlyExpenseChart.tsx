@@ -88,7 +88,7 @@ const MonthlyExpenseChart: React.FC = () => {
               Today
             </Button>
           </div>
-          <span className="text-xl font-semibold">${monthTotal.toFixed(2)}</span>
+          <span className="text-xl font-semibold">₹{monthTotal.toFixed(2)}</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -123,7 +123,7 @@ const MonthlyExpenseChart: React.FC = () => {
                   interval={Math.floor(chartData.length / 10)}
                 />
                 <YAxis />
-                <ChartTooltip content={<ChartTooltipContent formatter={(value) => `$${value}`} />} />
+                <ChartTooltip content={<ChartTooltipContent formatter={(value) => `₹${value}`} />} />
                 <Area 
                   type="monotone" 
                   dataKey="amount" 

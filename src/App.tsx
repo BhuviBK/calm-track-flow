@@ -14,9 +14,6 @@ import CalendarPage from "./pages/CalendarPage";
 import ExercisePage from "./pages/ExercisePage";
 import ExpensePage from "./pages/ExpensePage";
 import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -35,9 +32,6 @@ const App = () => (
             <Route path="/exercise" element={<ExercisePage />} />
             <Route path="/track" element={<TrackPage />} />
             <Route path="/expense" element={<ExpensePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

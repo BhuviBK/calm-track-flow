@@ -4,10 +4,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
-import { format } from 'date-fns';
 import { useAppContext } from '@/contexts/AppContext';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -43,11 +42,13 @@ const ExpenseTracker: React.FC = () => {
       const expense = {
         id: uuidv4(),
         date: new Date(),
-        amount: values.amount,
+        amount: Number(values.amount), // Ensure amount is a number
         category: values.category,
         description: values.description || '',
       };
+      
       addExpense(expense);
+      
       form.reset({
         amount: 0,
         category: '',
@@ -63,7 +64,7 @@ const ExpenseTracker: React.FC = () => {
   };
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -83,7 +84,8 @@ const ExpenseTracker: React.FC = () => {
                         min="0"
                         className="pl-8"
                         {...field}
-                        value={field.value || ''}
+                        value={field.value === 0 ? '' : field.value}
+                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
                       />
                     </div>
                   </FormControl>
@@ -133,7 +135,7 @@ const ExpenseTracker: React.FC = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-forest-500 hover:bg-forest-600"
+              className="w-full bg-forest-500 hover:bg-forest-600 transition-all duration-300 transform hover:scale-105"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Adding...' : 'Add Expense'}

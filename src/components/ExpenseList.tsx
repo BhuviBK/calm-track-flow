@@ -21,10 +21,10 @@ const ExpenseList: React.FC = () => {
     toast.success('Expense deleted');
   };
   
-  const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalAmount = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
   
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-xl">Recent Expenses</CardTitle>
         <div className="text-xl font-semibold text-right">
@@ -33,7 +33,7 @@ const ExpenseList: React.FC = () => {
       </CardHeader>
       <CardContent>
         {expenses.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 animate-pulse">
             No expenses recorded yet
           </div>
         ) : (
@@ -49,20 +49,27 @@ const ExpenseList: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedExpenses.map((expense) => (
-                  <TableRow key={expense.id}>
+                {sortedExpenses.map((expense, index) => (
+                  <TableRow 
+                    key={expense.id}
+                    className="transition-all duration-300 hover:bg-forest-50 dark:hover:bg-forest-900/20"
+                    style={{ 
+                      animationDelay: `${index * 50}ms`,
+                      animation: 'fade-in 0.5s ease-out forwards'
+                    }}
+                  >
                     <TableCell>{format(new Date(expense.date), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{expense.category}</TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       {expense.description || '-'}
                     </TableCell>
-                    <TableCell className="text-right">₹{expense.amount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">₹{Number(expense.amount).toFixed(2)}</TableCell>
                     <TableCell>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => handleDelete(expense.id)}
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 transition-all duration-300 hover:bg-red-100 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>

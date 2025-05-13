@@ -1,20 +1,23 @@
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SignupForm from "@/components/auth/SignupForm";
 import Layout from "@/components/Layout";
 import { useAppContext } from "@/contexts/AppContext";
-import { Navigate } from "react-router-dom";
 
 const SignupPage: React.FC = () => {
+  const navigate = useNavigate();
   const { currentUser, addUserHistory } = useAppContext();
   
   // Redirect if user is already logged in
-  if (currentUser) {
-    return <Navigate to="/" />;
-  }
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/");
+    }
+  }, [currentUser, navigate]);
   
   // Record page visit in history
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentUser) {
       addUserHistory({
         page: "Sign Up",

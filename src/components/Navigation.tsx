@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, User, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -8,6 +8,7 @@ import { useAppContext } from '@/contexts/AppContext';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { currentUser } = useAppContext();
   
@@ -35,23 +36,27 @@ const Navigation: React.FC = () => {
   const wellbeingItems = navItems.filter(item => item.group === 'wellbeing');
   const otherItems = navItems.filter(item => !item.group);
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   const NavItem = ({ item }: { item: typeof navItems[0] }) => (
-    <Link
+    <div
       key={item.path}
-      to={item.path}
       className={cn(
-        "flex items-center rounded-lg transition-colors",
+        "flex items-center rounded-lg transition-colors cursor-pointer",
         isMobile ? "px-3 py-2 w-full mb-1" : "px-3 py-2 w-full",
         location.pathname === item.path
           ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white"
           : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
       )}
+      onClick={() => handleNavigation(item.path)}
     >
       <div className="flex items-center">
         {item.icon}
         <span className="ml-2">{item.label}</span>
       </div>
-    </Link>
+    </div>
   );
   
   // Common navigation groups that work both for mobile sidebar and desktop

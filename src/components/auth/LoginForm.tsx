@@ -68,7 +68,7 @@ const LoginForm: React.FC = () => {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="johndoe" {...field} />
+                    <Input autoComplete="off" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -81,7 +81,7 @@ const LoginForm: React.FC = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="******" {...field} />
+                    <Input type="password" autoComplete="off" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

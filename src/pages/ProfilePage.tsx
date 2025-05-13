@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useAppContext } from "@/contexts/AppContext";
 import { Button } from "@/components/ui/button";
-import UserHistoryList from "@/components/UserHistoryList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ProfilePage: React.FC = () => {
@@ -75,8 +74,6 @@ const ProfilePage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
-          <UserHistoryList />
         </div>
       </div>
     </Layout>

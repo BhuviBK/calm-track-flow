@@ -39,7 +39,7 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
   };
 
   return (
-    <Card>
+    <Card className="animate-scale-in">
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle className="text-lg">Add New Task</CardTitle>
@@ -55,6 +55,7 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              className="transition-all duration-300 focus:border-calm-400"
             />
           </div>
           <div className="space-y-2">
@@ -66,14 +67,23 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
+              className="transition-all duration-300 focus:border-calm-400"
             />
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            className="transition-colors hover:bg-gray-100"
+          >
             Cancel
           </Button>
-          <Button type="submit" className="bg-calm-500 hover:bg-calm-600">
+          <Button 
+            type="submit" 
+            className="bg-calm-500 hover:bg-calm-600 transition-colors"
+          >
             Add Task
           </Button>
         </CardFooter>

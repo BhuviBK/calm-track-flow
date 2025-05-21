@@ -13,6 +13,8 @@ import TodoPage from "./pages/TodoPage";
 import CalendarPage from "./pages/CalendarPage";
 import ExercisePage from "./pages/ExercisePage";
 import ExpensePage from "./pages/ExpensePage";
+import PomodoroPage from "./pages/PomodoroPage";
+import ExerciseTimerPage from "./pages/ExerciseTimerPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/exercise" element={<ExercisePage />} />
             <Route path="/track" element={<TrackPage />} />
             <Route path="/expense" element={<ExpensePage />} />
+            <Route path="/pomodoro" element={<PomodoroPage />} />
+            <Route path="/exercise-timer" element={<ExerciseTimerPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

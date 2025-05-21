@@ -18,7 +18,11 @@ interface Task {
   date: string; // ISO string date
 }
 
-const TaskCardList: React.FC = () => {
+interface TaskCardListProps {
+  onConfetti?: () => void;
+}
+
+const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
   const [tasks, setTasks] = useState<Task[]>(() => {
     const savedTasks = localStorage.getItem('tasks');
     return savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
@@ -88,6 +92,11 @@ const TaskCardList: React.FC = () => {
     // Show toast for completed task
     const task = tasks.find(t => t.id === id);
     if (task && !task.completed) {
+      // Trigger confetti if a task is completed
+      if (onConfetti) {
+        onConfetti();
+      }
+      
       toast({
         title: "Task Completed",
         description: "Great job on completing your task!",

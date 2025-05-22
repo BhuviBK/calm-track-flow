@@ -53,7 +53,7 @@ const TodoPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Todo List</h1>
         
         {/* Motivation Section */}
-        <Card className="border-l-4 border-l-forest-500">
+        <Card className="border-l-4 border-l-purple-500">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg">Today's Motivation</CardTitle>
@@ -77,7 +77,7 @@ const TodoPage: React.FC = () => {
                   placeholder="Enter your motivation for today..."
                   className="min-h-[80px] animate-fade-in"
                 />
-                <Button onClick={saveMotivation} size="sm" className="bg-forest-500 hover:bg-forest-600">
+                <Button onClick={saveMotivation} size="sm" className="bg-purple-500 hover:bg-purple-600 text-white">
                   Save
                 </Button>
               </div>

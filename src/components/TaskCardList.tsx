@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import TaskCardForm from './TaskCardForm';
 import { format, isToday, isYesterday, isBefore, parseISO, startOfDay } from 'date-fns';
@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface Task {
   id: string;
   title: string;
-  time: string;
   completed: boolean;
   date: string; // ISO string date
 }
@@ -133,17 +132,11 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
             <span className={task.completed ? 'line-through text-gray-500' : ''}>
               {task.title}
             </span>
-            <div className="flex items-center gap-2 text-sm font-normal text-gray-500">
-              {!isToday(parseISO(task.date)) && !task.completed && (
-                <span className="text-amber-500 flex items-center gap-1">
-                  <CalendarIcon className="h-3 w-3" /> Carried forward
-                </span>
-              )}
-              <span className="flex items-center">
-                <Clock className="h-4 w-4 mr-1" />
-                {task.time}
+            {!isToday(parseISO(task.date)) && !task.completed && (
+              <span className="text-amber-500 flex items-center gap-1 text-sm font-normal">
+                <CalendarIcon className="h-3 w-3" /> Carried forward
               </span>
-            </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -166,10 +159,25 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in">
-        <TabsList className="w-full">
-          <TabsTrigger value="today" className="flex-1">Today</TabsTrigger>
-          <TabsTrigger value="yesterday" className="flex-1">Yesterday</TabsTrigger>
-          <TabsTrigger value="earlier" className="flex-1">Earlier</TabsTrigger>
+        <TabsList className="w-full bg-purple-100 dark:bg-purple-900/30">
+          <TabsTrigger 
+            value="today" 
+            className="flex-1 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+          >
+            Today
+          </TabsTrigger>
+          <TabsTrigger 
+            value="yesterday" 
+            className="flex-1 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+          >
+            Yesterday
+          </TabsTrigger>
+          <TabsTrigger 
+            value="earlier" 
+            className="flex-1 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+          >
+            Earlier
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="today" className="space-y-4 mt-4">

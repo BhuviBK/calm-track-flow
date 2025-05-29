@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, SkipForward, RotateCcw, X } from 'lucide-react';
+import { Play, Pause, SkipForward, RotateCcw, X, Volume2, VolumeX } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Confetti from 'react-confetti';
+import { playBellSound, toggleAmbientMusic, stopAllSounds, preloadAudio } from '@/utils/audioUtils';
 
 interface Exercise {
   id: number;
@@ -33,9 +34,21 @@ const ExerciseTimer: React.FC = () => {
   const [isRest, setIsRest] = useState(false);
   const [restSeconds, setRestSeconds] = useState(10); // 10 seconds rest
   const [showConfetti, setShowConfetti] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(false);
   const { toast } = useToast();
   
   const totalSets = 3;
+
+  // Initialize audio on component mount
+  useEffect(() => {
+    preloadAudio();
+    console.log("Exercise timer component mounted, audio preloaded");
+    
+    return () => {
+      console.log("Exercise timer component unmounting");
+      stopAllSounds();
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('exercises', JSON.stringify(exercises));
@@ -63,6 +76,9 @@ const ExerciseTimer: React.FC = () => {
             setIsRest(false);
             setSeconds(60);
             
+            // Play bell sound when rest ends
+            playBellSound();
+            
             if (currentSet < totalSets) {
               setCurrentSet(currentSet + 1);
               toast({
@@ -86,6 +102,7 @@ const ExerciseTimer: React.FC = () => {
                 });
               } else {
                 // All exercises completed
+                playBellSound();
                 toast({
                   title: "Workout completed!",
                   description: "Great job! You've completed all exercises."
@@ -103,6 +120,9 @@ const ExerciseTimer: React.FC = () => {
             setRestSeconds(10);
             setShowConfetti(true);
             
+            // Play bell sound when exercise set ends
+            playBellSound();
+            
             toast({
               title: "Rest time!",
               description: "Take 10 seconds to recover"
@@ -117,6 +137,24 @@ const ExerciseTimer: React.FC = () => {
 
   const toggleTimer = () => {
     setIsActive(!isActive);
+    
+    // Start ambient music when timer starts
+    if (!isActive && musicEnabled) {
+      toggleAmbientMusic(true);
+      console.log("Starting ambient music with timer");
+    }
+  };
+
+  const toggleMusic = () => {
+    const newMusicState = !musicEnabled;
+    setMusicEnabled(newMusicState);
+    toggleAmbientMusic(newMusicState && isActive);
+    console.log("Music toggled:", newMusicState);
+    
+    toast({
+      title: newMusicState ? "Music enabled" : "Music disabled",
+      description: newMusicState ? "Background music will play during workouts" : "Background music turned off"
+    });
   };
 
   const resetTimer = () => {
@@ -126,6 +164,9 @@ const ExerciseTimer: React.FC = () => {
     setCurrentSet(1);
     setIsRest(false);
     setCurrentExerciseIndex(0);
+    
+    // Stop all sounds when resetting
+    stopAllSounds();
     
     // Reset completed status
     setExercises(exercises.map(ex => ({ ...ex, completed: false })));
@@ -180,9 +221,19 @@ const ExerciseTimer: React.FC = () => {
         />
       )}
       <CardHeader>
-        <CardTitle className="text-xl font-bold">
-          {isRest ? "Rest Period" : `${exercises[currentExerciseIndex]?.name || 'Exercise'}`}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl font-bold">
+            {isRest ? "Rest Period" : `${exercises[currentExerciseIndex]?.name || 'Exercise'}`}
+          </CardTitle>
+          <Button
+            onClick={toggleMusic}
+            variant="outline"
+            size="sm"
+            className={`${musicEnabled ? 'bg-green-50 border-green-300' : ''}`}
+          >
+            {musicEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center">

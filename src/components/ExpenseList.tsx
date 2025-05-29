@@ -5,8 +5,9 @@ import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 const ExpenseList: React.FC = () => {
   const { expenses, deleteExpense } = useAppContext();
@@ -23,12 +24,69 @@ const ExpenseList: React.FC = () => {
   
   const totalAmount = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
   
+  const exportToExcel = () => {
+    if (expenses.length === 0) {
+      toast.error('No expenses to export');
+      return;
+    }
+
+    // Prepare data for Excel export
+    const excelData = expenses.map(expense => ({
+      Date: format(new Date(expense.date), 'dd/MM/yyyy'),
+      Category: expense.category,
+      Description: expense.description || '-',
+      Amount: Number(expense.amount).toFixed(2)
+    }));
+
+    // Add total row
+    excelData.push({
+      Date: '',
+      Category: '',
+      Description: 'TOTAL',
+      Amount: totalAmount.toFixed(2)
+    });
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { width: 12 }, // Date
+      { width: 15 }, // Category
+      { width: 30 }, // Description
+      { width: 12 }  // Amount
+    ];
+
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Expenses');
+
+    // Generate filename with current date
+    const filename = `expenses_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+
+    // Download the file
+    XLSX.writeFile(wb, filename);
+    
+    toast.success('Expenses exported successfully!');
+  };
+  
   return (
     <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-xl">Recent Expenses</CardTitle>
-        <div className="text-xl font-semibold text-right">
-          Total: ₹{totalAmount.toFixed(2)}
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={exportToExcel}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 hover:bg-green-50 hover:border-green-300 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Export to Excel
+          </Button>
+          <div className="text-xl font-semibold text-right">
+            Total: ₹{totalAmount.toFixed(2)}
+          </div>
         </div>
       </CardHeader>
       <CardContent>

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import ReactConfetti from 'react-confetti';
 import TaskCardList from '@/components/TaskCardList';
+import NotificationSettings from '@/components/NotificationSettings';
 
 const TodoPage: React.FC = () => {
   const [motivation, setMotivation] = useState<string>("You've got this! Complete your tasks one by one.");
@@ -51,6 +52,9 @@ const TodoPage: React.FC = () => {
       
       <div className="space-y-6 animate-fade-in">
         <h1 className="text-2xl font-bold">Todo List</h1>
+        
+        {/* Notification Settings */}
+        <NotificationSettings />
         
         {/* Motivation Section */}
         <Card className="border-l-4 border-l-purple-500">

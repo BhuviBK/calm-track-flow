@@ -7,7 +7,7 @@ import { useAppContext } from "@/contexts/AppContext";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser, addUserHistory } = useAppContext();
+  const { currentUser } = useAppContext();
   
   // Redirect if user is already logged in
   useEffect(() => {
@@ -15,17 +15,6 @@ const SignupPage: React.FC = () => {
       navigate("/");
     }
   }, [currentUser, navigate]);
-  
-  // Record page visit in history
-  useEffect(() => {
-    if (currentUser) {
-      addUserHistory({
-        page: "Sign Up",
-        action: "Visited signup page",
-        timestamp: new Date(),
-      });
-    }
-  }, [currentUser, addUserHistory]);
 
   return (
     <Layout>

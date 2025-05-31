@@ -7,13 +7,69 @@ import { Link } from 'react-router-dom';
 import TaskCardList from '@/components/TaskCardList';
 
 const Index: React.FC = () => {
-  const { expenses, moodEntries } = useAppContext();
+  const { expenses, moodEntries, currentUser } = useAppContext();
   const [isHovering, setIsHovering] = useState<string | null>(null);
+
+  // Show sign-in prompt if no user is logged in
+  if (!currentUser) {
+    return (
+      <Layout>
+        <div className="mb-6 transition-all duration-500 animate-fade-in text-center">
+          <h1 className="text-3xl font-bold mb-2 animate-float">Welcome to ZenMind</h1>
+          <p className="text-gray-600 dark:text-gray-300 animate-fade-in mb-8" style={{ animationDelay: '300ms' }}>
+            Your personal task and wellness companion
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <div 
+              className="auth-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 transition-all duration-500 transform hover:shadow-xl animate-fade-in"
+              style={{ animationDelay: '400ms' }}
+              onMouseEnter={() => setIsHovering('signin')}
+              onMouseLeave={() => setIsHovering(null)}
+            >
+              <div className="text-center">
+                <div className={`w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-500 ${isHovering === 'signin' ? 'scale-110' : ''}`}>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full animate-pulse-gentle"></div>
+                </div>
+                <h2 className="text-xl font-semibold mb-3 transition-all duration-300">Sign In</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Access your existing account and continue your journey.
+                </p>
+                <Button asChild className="bg-blue-500 hover:bg-blue-600 transition-transform duration-300 hover:scale-105">
+                  <Link to="/login">Sign In</Link>
+                </Button>
+              </div>
+            </div>
+            
+            <div 
+              className="auth-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 transition-all duration-500 transform hover:shadow-xl animate-fade-in"
+              style={{ animationDelay: '600ms' }}
+              onMouseEnter={() => setIsHovering('signup')}
+              onMouseLeave={() => setIsHovering(null)}
+            >
+              <div className="text-center">
+                <div className={`w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-500 ${isHovering === 'signup' ? 'scale-110' : ''}`}>
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full animate-pulse-gentle"></div>
+                </div>
+                <h2 className="text-xl font-semibold mb-3 transition-all duration-300">Create Account</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Join ZenMind and start your wellness journey today.
+                </p>
+                <Button asChild className="bg-green-500 hover:bg-green-600 transition-transform duration-300 hover:scale-105">
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="mb-6 transition-all duration-500 animate-fade-in">
-        <h1 className="text-3xl font-bold mb-2 animate-float">Welcome to ZenMind</h1>
+        <h1 className="text-3xl font-bold mb-2 animate-float">Welcome back, {currentUser.username}!</h1>
         <p className="text-gray-600 dark:text-gray-300 animate-fade-in" style={{ animationDelay: '300ms' }}>
           Your daily task and expense tracker
         </p>

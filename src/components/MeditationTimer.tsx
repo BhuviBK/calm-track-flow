@@ -1,11 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Volume2, VolumeX } from 'lucide-react';
-import { playBellSound, toggleAmbientMusic, stopAllSounds, preloadAudio } from '@/utils/audioUtils';
 
 const MeditationTimer: React.FC = () => {
   const [duration, setDuration] = useState<number>(5);
@@ -13,12 +10,6 @@ const MeditationTimer: React.FC = () => {
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [completed, setCompleted] = useState<boolean>(false);
-  const [musicEnabled, setMusicEnabled] = useState<boolean>(true);
-
-  // Preload audio when component mounts
-  useEffect(() => {
-    preloadAudio();
-  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -30,32 +21,12 @@ const MeditationTimer: React.FC = () => {
     } else if (timeLeft === 0 && isActive) {
       setIsActive(false);
       setCompleted(true);
-      playBellSound();
-      stopAllSounds();
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isActive, isPaused, timeLeft]);
-
-  useEffect(() => {
-    // Control ambient music based on meditation state and music toggle
-    console.log("Timer music state changed:", isActive, !isPaused, musicEnabled);
-    if (isActive && !isPaused && musicEnabled) {
-      toggleAmbientMusic(true);
-    } else {
-      toggleAmbientMusic(false);
-    }
-  }, [isActive, isPaused, musicEnabled]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      console.log("Timer component unmounting");
-      stopAllSounds();
-    };
-  }, []);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -78,12 +49,6 @@ const MeditationTimer: React.FC = () => {
     setIsPaused(false);
     setTimeLeft(null);
     setCompleted(false);
-    stopAllSounds();
-  };
-
-  const toggleMusic = () => {
-    console.log("Timer music toggle clicked");
-    setMusicEnabled(!musicEnabled);
   };
 
   const progress = timeLeft !== null ? ((duration * 60 - timeLeft) / (duration * 60)) * 100 : 0;
@@ -109,18 +74,6 @@ const MeditationTimer: React.FC = () => {
                 onValueChange={(value) => setDuration(value[0])}
                 className="my-4"
               />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="music-mode" 
-                checked={musicEnabled} 
-                onCheckedChange={toggleMusic} 
-              />
-              <Label htmlFor="music-mode" className="flex items-center gap-2">
-                {musicEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                <span>Background Music</span>
-              </Label>
             </div>
           </div>
         ) : (
@@ -148,19 +101,6 @@ const MeditationTimer: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex items-center space-x-2 mb-4">
-              <Switch 
-                id="music-mode-active" 
-                checked={musicEnabled} 
-                onCheckedChange={toggleMusic} 
-                disabled={completed}
-              />
-              <Label htmlFor="music-mode-active" className="flex items-center gap-2">
-                {musicEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                <span>Music</span>
-              </Label>
-            </div>
-            
             {completed && (
               <div className="mb-4 text-center">
                 <p className="text-lg font-semibold text-calm-700">
@@ -175,28 +115,32 @@ const MeditationTimer: React.FC = () => {
         )}
       </CardContent>
       
-      <CardFooter className="flex justify-center space-x-2">
-        {!isActive && timeLeft === null ? (
-          <Button onClick={startTimer} className="bg-calm-500 hover:bg-calm-600">
-            Start Meditation
-          </Button>
-        ) : (
-          <>
-            <Button
-              onClick={pauseTimer}
-              variant="outline"
-              disabled={completed}
-            >
-              {isPaused ? 'Resume' : 'Pause'}
+      <CardFooter className="flex justify-center">
+        <div className="flex space-x-2 w-full max-w-xs px-2">
+          {!isActive && timeLeft === null ? (
+            <Button onClick={startTimer} className="bg-calm-500 hover:bg-calm-600 flex-1">
+              Start Meditation
             </Button>
-            <Button
-              onClick={resetTimer}
-              variant="outline"
-            >
-              Reset
-            </Button>
-          </>
-        )}
+          ) : (
+            <>
+              <Button
+                onClick={pauseTimer}
+                variant="outline"
+                disabled={completed}
+                className="flex-1"
+              >
+                {isPaused ? 'Resume' : 'Pause'}
+              </Button>
+              <Button
+                onClick={resetTimer}
+                variant="outline"
+                className="flex-1"
+              >
+                Reset
+              </Button>
+            </>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

@@ -17,9 +17,6 @@ import ExercisePage from "./pages/ExercisePage";
 import ExpensePage from "./pages/ExpensePage";
 import PomodoroPage from "./pages/PomodoroPage";
 import ExerciseTimerPage from "./pages/ExerciseTimerPage";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,9 +37,6 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/todo" element={<TodoPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/meditate" element={<MeditatePage />} />

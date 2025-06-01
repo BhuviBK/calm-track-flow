@@ -7,10 +7,12 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Button } from '@/components/ui/button';
 import { Trash2, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import * as XLSX from 'xlsx';
 
 const ExpenseList: React.FC = () => {
   const { expenses, deleteExpense } = useAppContext();
+  const isMobile = useIsMobile();
   
   // Sort expenses by date (newest first)
   const sortedExpenses = [...expenses].sort((a, b) => 
@@ -72,19 +74,20 @@ const ExpenseList: React.FC = () => {
   
   return (
     <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <CardTitle className="text-xl">Recent Expenses</CardTitle>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           <Button
             onClick={exportToExcel}
             variant="outline"
-            size="sm"
-            className="flex items-center gap-2 hover:bg-green-50 hover:border-green-300 transition-colors"
+            size={isMobile ? "icon" : "sm"}
+            className="flex items-center gap-2 hover:bg-green-50 hover:border-green-300 transition-colors self-end sm:self-auto"
+            title={isMobile ? "Export to Excel" : ""}
           >
             <Download className="h-4 w-4" />
-            Export to Excel
+            {!isMobile && "Export to Excel"}
           </Button>
-          <div className="text-xl font-semibold text-right">
+          <div className="text-xl font-semibold text-left sm:text-right w-full sm:w-auto">
             Total: ₹{totalAmount.toFixed(2)}
           </div>
         </div>

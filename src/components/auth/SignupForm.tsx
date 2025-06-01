@@ -30,7 +30,7 @@ const formSchema = z.object({
 
 const SignupForm: React.FC = () => {
   const navigate = useNavigate();
-  const { registerUser } = useAppContext();
+  const { registerUser, loginUser } = useAppContext();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,14 +42,24 @@ const SignupForm: React.FC = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const success = registerUser({
+    const credentials = {
       username: values.username,
       password: values.password,
-    });
+    };
     
-    if (success) {
-      toast.success("Account created successfully!");
-      navigate("/login");
+    const registrationSuccess = registerUser(credentials);
+    
+    if (registrationSuccess) {
+      // Automatically log in the user after successful registration
+      const loginSuccess = loginUser(credentials);
+      
+      if (loginSuccess) {
+        toast.success("Account created and logged in successfully!");
+        navigate("/");
+      } else {
+        toast.success("Account created successfully!");
+        navigate("/login");
+      }
     } else {
       toast.error("Username already exists");
     }

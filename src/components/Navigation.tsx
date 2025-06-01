@@ -37,6 +37,7 @@ const Navigation: React.FC = () => {
   const otherItems = navItems.filter(item => !item.group);
 
   const handleNavigation = (path: string) => {
+    console.log('Navigating to:', path);
     navigate(path);
   };
 
@@ -48,9 +49,13 @@ const Navigation: React.FC = () => {
         isMobile ? "px-3 py-2 w-full mb-1" : "px-3 py-2 w-full",
         location.pathname === item.path
           ? "bg-forest-500 text-white dark:bg-forest-700 dark:text-white translate-x-2"
-          : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300"
+          : "text-gray-600 hover:text-forest-700 dark:text-gray-300 dark:hover:text-forest-300 hover:bg-gray-100 dark:hover:bg-gray-700"
       )}
-      onClick={() => handleNavigation(item.path)}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleNavigation(item.path);
+      }}
     >
       <div className="flex items-center">
         <span className={`transition-transform duration-300 ${location.pathname === item.path ? 'rotate-0 scale-110' : 'rotate-0'}`}>

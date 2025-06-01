@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface MoodData {
@@ -31,6 +32,9 @@ interface User {
   history: UserHistoryItem[];
   lastLogin: Date;
   lastPage?: string;
+  moodEntries: MoodData[];
+  meditationSessions: MeditationData[];
+  expenses: ExpenseData[];
 }
 
 interface LoginCredentials {
@@ -58,68 +62,69 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [moodEntries, setMoodEntries] = useState<MoodData[]>([]);
-  const [meditationSessions, setMeditationSessions] = useState<MeditationData[]>([]);
-  const [expenses, setExpenses] = useState<ExpenseData[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  // Derived state from current user
+  const moodEntries = currentUser?.moodEntries || [];
+  const meditationSessions = currentUser?.meditationSessions || [];
+  const expenses = currentUser?.expenses || [];
   
   // Load data from localStorage on component mount
   useEffect(() => {
     try {
-      const storedMoods = localStorage.getItem('moodEntries');
-      const storedSessions = localStorage.getItem('meditationSessions');
-      const storedExpenses = localStorage.getItem('expenses');
-      const storedUsers = localStorage.getItem('users');
-      const storedCurrentUser = localStorage.getItem('currentUser');
-      
-      if (storedMoods) {
-        const parsedMoods = JSON.parse(storedMoods);
-        setMoodEntries(parsedMoods.map((mood: any) => ({
-          ...mood,
-          date: new Date(mood.date)
-        })));
-      }
-      
-      if (storedSessions) {
-        const parsedSessions = JSON.parse(storedSessions);
-        setMeditationSessions(parsedSessions.map((session: any) => ({
-          ...session,
-          date: new Date(session.date)
-        })));
-      }
-      
-      if (storedExpenses) {
-        const parsedExpenses = JSON.parse(storedExpenses);
-        setExpenses(parsedExpenses.map((expense: any) => ({
-          ...expense,
-          date: new Date(expense.date)
-        })));
-      }
+      const storedUsers = localStorage.getItem('zenmind_users');
+      const storedCurrentUser = localStorage.getItem('zenmind_currentUser');
       
       if (storedUsers) {
         const parsedUsers = JSON.parse(storedUsers);
-        setUsers(parsedUsers.map((user: any) => ({
+        const usersWithDates = parsedUsers.map((user: any) => ({
           ...user,
           lastLogin: new Date(user.lastLogin),
           history: user.history.map((item: any) => ({
             ...item,
             timestamp: new Date(item.timestamp)
+          })),
+          moodEntries: (user.moodEntries || []).map((mood: any) => ({
+            ...mood,
+            date: new Date(mood.date)
+          })),
+          meditationSessions: (user.meditationSessions || []).map((session: any) => ({
+            ...session,
+            date: new Date(session.date)
+          })),
+          expenses: (user.expenses || []).map((expense: any) => ({
+            ...expense,
+            date: new Date(expense.date)
           }))
-        })));
+        }));
+        setUsers(usersWithDates);
       }
       
       if (storedCurrentUser) {
         const parsedCurrentUser = JSON.parse(storedCurrentUser);
         if (parsedCurrentUser) {
-          setCurrentUser({
+          const userWithDates = {
             ...parsedCurrentUser,
             lastLogin: new Date(parsedCurrentUser.lastLogin),
             history: parsedCurrentUser.history.map((item: any) => ({
               ...item,
               timestamp: new Date(item.timestamp)
+            })),
+            moodEntries: (parsedCurrentUser.moodEntries || []).map((mood: any) => ({
+              ...mood,
+              date: new Date(mood.date)
+            })),
+            meditationSessions: (parsedCurrentUser.meditationSessions || []).map((session: any) => ({
+              ...session,
+              date: new Date(session.date)
+            })),
+            expenses: (parsedCurrentUser.expenses || []).map((expense: any) => ({
+              ...expense,
+              date: new Date(expense.date)
             }))
-          });
+          };
+          setCurrentUser(userWithDates);
         }
       }
     } catch (error) {
@@ -127,56 +132,88 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
   
-  // Save data to localStorage whenever it changes
+  // Save users to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('moodEntries', JSON.stringify(moodEntries));
-  }, [moodEntries]);
-  
-  useEffect(() => {
-    localStorage.setItem('meditationSessions', JSON.stringify(meditationSessions));
-  }, [meditationSessions]);
-  
-  useEffect(() => {
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-  }, [expenses]);
-  
-  useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(users));
+    if (users.length > 0) {
+      localStorage.setItem('zenmind_users', JSON.stringify(users));
+    }
   }, [users]);
   
+  // Save current user to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    if (currentUser) {
+      localStorage.setItem('zenmind_currentUser', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('zenmind_currentUser');
+    }
   }, [currentUser]);
   
+  const updateUserData = (updatedUser: User) => {
+    // Update current user
+    setCurrentUser(updatedUser);
+    
+    // Update in users array
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.username === updatedUser.username ? updatedUser : user
+      )
+    );
+  };
+  
   const addMoodEntry = (entry: MoodData) => {
-    setMoodEntries((prev) => {
-      // Check if an entry already exists for this date
-      const existingIndex = prev.findIndex(
-        (item) => new Date(item.date).toDateString() === new Date(entry.date).toDateString()
-      );
-      
-      if (existingIndex !== -1) {
-        // Replace existing entry for the same day
-        const updated = [...prev];
-        updated[existingIndex] = entry;
-        return updated;
-      } else {
-        // Add new entry
-        return [...prev, entry];
-      }
-    });
+    if (!currentUser) return;
+    
+    const existingIndex = currentUser.moodEntries.findIndex(
+      (item) => new Date(item.date).toDateString() === new Date(entry.date).toDateString()
+    );
+    
+    let updatedMoodEntries;
+    if (existingIndex !== -1) {
+      updatedMoodEntries = [...currentUser.moodEntries];
+      updatedMoodEntries[existingIndex] = entry;
+    } else {
+      updatedMoodEntries = [...currentUser.moodEntries, entry];
+    }
+    
+    const updatedUser = {
+      ...currentUser,
+      moodEntries: updatedMoodEntries
+    };
+    
+    updateUserData(updatedUser);
   };
   
   const addMeditationSession = (session: MeditationData) => {
-    setMeditationSessions((prev) => [...prev, session]);
+    if (!currentUser) return;
+    
+    const updatedUser = {
+      ...currentUser,
+      meditationSessions: [...currentUser.meditationSessions, session]
+    };
+    
+    updateUserData(updatedUser);
   };
   
   const addExpense = (expense: ExpenseData) => {
-    setExpenses((prev) => [...prev, expense]);
+    if (!currentUser) return;
+    
+    const updatedUser = {
+      ...currentUser,
+      expenses: [...currentUser.expenses, expense]
+    };
+    
+    updateUserData(updatedUser);
   };
   
   const deleteExpense = (id: string) => {
-    setExpenses((prev) => prev.filter(expense => expense.id !== id));
+    if (!currentUser) return;
+    
+    const updatedUser = {
+      ...currentUser,
+      expenses: currentUser.expenses.filter(expense => expense.id !== id)
+    };
+    
+    updateUserData(updatedUser);
   };
   
   const registerUser = (credentials: LoginCredentials): boolean => {
@@ -185,12 +222,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
     
-    // Create new user
+    // Create new user with empty data arrays
     const newUser: User = {
       username: credentials.username,
-      password: credentials.password, // In a real app, this should be hashed
+      password: credentials.password,
       history: [],
       lastLogin: new Date(),
+      moodEntries: [],
+      meditationSessions: [],
+      expenses: []
     };
     
     setUsers(prevUsers => [...prevUsers, newUser]);
@@ -217,15 +257,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ]
       };
       
-      // Update the user in the users array
-      setUsers(prevUsers => 
-        prevUsers.map(u => 
-          u.username === user.username ? updatedUser : u
-        )
-      );
-      
-      // Set as current user
-      setCurrentUser(updatedUser);
+      updateUserData(updatedUser);
       return true;
     }
     
@@ -244,14 +276,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       history: [...currentUser.history, historyItem]
     };
     
-    setCurrentUser(updatedUser);
-    
-    // Also update in the users array
-    setUsers(prevUsers => 
-      prevUsers.map(user => 
-        user.username === currentUser.username ? updatedUser : user
-      )
-    );
+    updateUserData(updatedUser);
   };
   
   const updateLastPage = (page: string) => {
@@ -262,14 +287,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       lastPage: page
     };
     
-    setCurrentUser(updatedUser);
-    
-    // Also update in the users array
-    setUsers(prevUsers => 
-      prevUsers.map(user => 
-        user.username === currentUser.username ? updatedUser : user
-      )
-    );
+    updateUserData(updatedUser);
   };
   
   const value = {

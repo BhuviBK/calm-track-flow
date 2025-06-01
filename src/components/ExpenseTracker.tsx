@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -11,48 +10,41 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
-
 const expenseSchema = z.object({
   amount: z.coerce.number().positive('Amount must be positive'),
   category: z.string().min(1, 'Category is required'),
-  description: z.string().optional(),
+  description: z.string().optional()
 });
-
-const expenseCategories = [
-  'Food', 'Transportation', 'Housing', 'Entertainment', 
-  'Shopping', 'Utilities', 'Healthcare', 'Education', 'Other'
-];
-
+const expenseCategories = ['Food', 'Transportation', 'Housing', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Other'];
 const ExpenseTracker: React.FC = () => {
-  const { addExpense } = useAppContext();
+  const {
+    addExpense
+  } = useAppContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       amount: 0,
       category: '',
-      description: '',
-    },
+      description: ''
+    }
   });
-
   const onSubmit = async (values: z.infer<typeof expenseSchema>) => {
     setIsSubmitting(true);
     try {
       const expense = {
         id: uuidv4(),
         date: new Date(),
-        amount: Number(values.amount), // Ensure amount is a number
+        amount: Number(values.amount),
+        // Ensure amount is a number
         category: values.category,
-        description: values.description || '',
+        description: values.description || ''
       };
-      
       addExpense(expense);
-      
       form.reset({
         amount: 0,
         category: '',
-        description: '',
+        description: ''
       });
       toast.success('Expense added successfully');
     } catch (error) {
@@ -62,43 +54,26 @@ const ExpenseTracker: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  return (
-    <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
+  return <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
       <CardContent className="pt-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-0">
+            <FormField control={form.control} name="amount" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                        className="pl-8"
-                        {...field}
-                        value={field.value === 0 ? '' : field.value}
-                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                      />
+                      <Input type="number" placeholder="0.00" step="0.01" min="0" className="pl-8" {...field} value={field.value === 0 ? '' : field.value} onChange={e => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))} />
                     </div>
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
             
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
+            <FormField control={form.control} name="category" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Category</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -107,44 +82,30 @@ const ExpenseTracker: React.FC = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {expenseCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
+                      {expenseCategories.map(category => <SelectItem key={category} value={category}>
                           {category}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
             
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
+            <FormField control={form.control} name="description" render={({
+            field
+          }) => <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="What did you spend on?" {...field} />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormItem>} />
             
-            <Button 
-              type="submit" 
-              className="w-full bg-forest-500 hover:bg-forest-600 transition-all duration-300 transform hover:scale-105"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full bg-forest-500 hover:bg-forest-600 transition-all duration-300 transform hover:scale-105" disabled={isSubmitting}>
               {isSubmitting ? 'Adding...' : 'Add Expense'}
             </Button>
           </form>
         </Form>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default ExpenseTracker;

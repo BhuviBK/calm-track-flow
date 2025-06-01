@@ -6,26 +6,12 @@ import ExpenseList from '@/components/ExpenseList';
 import DailyExpenseChart from '@/components/DailyExpenseChart';
 import MonthlyExpenseChart from '@/components/MonthlyExpenseChart';
 import { stopAllSounds } from '@/utils/audioUtils';
-import { useAppContext } from '@/contexts/AppContext';
-import { useNavigate } from 'react-router-dom';
 
 const ExpensePage: React.FC = () => {
-  const navigate = useNavigate();
-  const { addUserHistory } = useAppContext();
-  
   // Clean up any playing audio when navigating to this page
   useEffect(() => {
     stopAllSounds();
   }, []);
-  
-  // Track history
-  useEffect(() => {
-    addUserHistory({
-      page: "Expenses",
-      action: "Viewed expense tracking page",
-      timestamp: new Date()
-    });
-  }, [addUserHistory]);
   
   return (
     <Layout>

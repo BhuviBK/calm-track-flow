@@ -31,24 +31,28 @@ const FoodPage: React.FC = () => {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-            <h2 className="text-xl font-semibold mb-4">Add Food</h2>
-            <FoodTracker />
-          </div>
-          
-          <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-            <DateTracker onDateRangeChange={handleDateRangeChange} />
-          </div>
+      <div className="space-y-6">
+        {/* Date Tracker - Full Width */}
+        <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <DateTracker onDateRangeChange={handleDateRangeChange} />
         </div>
         
-        <div className="lg:col-span-3 animate-fade-in" style={{ animationDelay: '400ms' }}>
-          <FoodList 
-            startDate={dateRange?.startDate}
-            endDate={dateRange?.endDate}
-            periodLabel={dateRange?.label}
-          />
+        {/* Food Tracker and Food List */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+              <h2 className="text-xl font-semibold mb-4">Add Food</h2>
+              <FoodTracker />
+            </div>
+          </div>
+          
+          <div className="lg:col-span-3 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            <FoodList 
+              startDate={dateRange?.startDate}
+              endDate={dateRange?.endDate}
+              periodLabel={dateRange?.label}
+            />
+          </div>
         </div>
       </div>
     </Layout>

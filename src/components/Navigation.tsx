@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, Timer, Apple } from 'lucide-react';
+import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, Timer, UtensilsCrossed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -22,7 +22,7 @@ const Navigation: React.FC = () => {
     { path: '/meditate', icon: <Clock className="w-5 h-5" />, label: 'Meditate', group: 'wellbeing' },
     { path: '/exercise', icon: <Dumbbell className="w-5 h-5" />, label: 'Exercise', group: 'wellbeing' },
     { path: '/track', icon: <Activity className="w-5 h-5" />, label: 'Mood', group: 'wellbeing' },
-    { path: '/food', icon: <Apple className="w-5 h-5" />, label: 'Calories', group: 'wellbeing' },
+    { path: '/food', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Calories', group: 'wellbeing' },
   ];
 
   // Group the items by their category

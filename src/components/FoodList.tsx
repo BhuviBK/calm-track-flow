@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { format, isToday } from 'date-fns';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,15 +8,32 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const FoodList: React.FC = () => {
+interface FoodListProps {
+  startDate?: Date;
+  endDate?: Date;
+  periodLabel?: string;
+}
+
+const FoodList: React.FC<FoodListProps> = ({ startDate, endDate, periodLabel }) => {
   const { foodEntries, deleteFoodEntry } = useAppContext();
   
-  // Sort food entries by date (newest first)
-  const sortedFoodEntries = [...foodEntries].sort((a, b) => 
+  // Filter food entries based on date range
+  const filteredFoodEntries = startDate && endDate 
+    ? foodEntries.filter(food => {
+        const foodDate = new Date(food.date);
+        return foodDate >= startDate && foodDate <= endDate;
+      })
+    : foodEntries;
+
+  // Sort filtered food entries by date (newest first)
+  const sortedFoodEntries = [...filteredFoodEntries].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
-  // Calculate today's calories
+  // Calculate calories for the filtered period
+  const periodCalories = filteredFoodEntries.reduce((sum, food) => sum + (food.calories * food.quantity), 0);
+
+  // Calculate today's calories (always show today's summary)
   const todayFoodEntries = foodEntries.filter(food => isToday(new Date(food.date)));
   const todayCalories = todayFoodEntries.reduce((sum, food) => sum + (food.calories * food.quantity), 0);
 
@@ -41,7 +58,7 @@ const FoodList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Today's Summary */}
+      {/* Today's Summary - Always show */}
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-xl">Today's Calories</CardTitle>
@@ -73,18 +90,20 @@ const FoodList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* All Food Entries */}
+      {/* Filtered Food Entries */}
       <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-xl">Food History</CardTitle>
+          <CardTitle className="text-xl">
+            {periodLabel ? `${periodLabel} Food History` : 'Food History'}
+          </CardTitle>
           <div className="text-xl font-semibold">
-            Total: {totalCalories} calories
+            {periodLabel ? `${periodLabel}: ${periodCalories} calories` : `Total: ${totalCalories} calories`}
           </div>
         </CardHeader>
         <CardContent>
-          {foodEntries.length === 0 ? (
+          {sortedFoodEntries.length === 0 ? (
             <div className="text-center py-8 text-gray-500 animate-pulse">
-              No food entries recorded yet
+              {periodLabel ? `No food entries for ${periodLabel.toLowerCase()}` : 'No food entries recorded yet'}
             </div>
           ) : (
             <div className="overflow-x-auto">

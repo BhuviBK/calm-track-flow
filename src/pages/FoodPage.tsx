@@ -14,7 +14,7 @@ const FoodPage: React.FC = () => {
   return (
     <Layout>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 animate-fade-in">Food Tracker</h1>
+        <h1 className="text-3xl font-bold mb-2 animate-fade-in">Calorie Tracker</h1>
         <p className="text-gray-600 dark:text-gray-300 animate-fade-in" style={{ animationDelay: '100ms' }}>
           Track your daily food intake and monitor calories
         </p>

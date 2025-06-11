@@ -20,14 +20,26 @@ interface ExpenseData {
   description: string;
 }
 
+interface FoodData {
+  id: string;
+  date: Date;
+  name: string;
+  calories: number;
+  quantity: number;
+  meal: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+}
+
 interface AppContextType {
   moodEntries: MoodData[];
   meditationSessions: MeditationData[];
   expenses: ExpenseData[];
+  foodEntries: FoodData[];
   addMoodEntry: (entry: MoodData) => void;
   addMeditationSession: (session: MeditationData) => void;
   addExpense: (expense: ExpenseData) => void;
   deleteExpense: (id: string) => void;
+  addFoodEntry: (food: FoodData) => void;
+  deleteFoodEntry: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -36,6 +48,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [moodEntries, setMoodEntries] = useState<MoodData[]>([]);
   const [meditationSessions, setMeditationSessions] = useState<MeditationData[]>([]);
   const [expenses, setExpenses] = useState<ExpenseData[]>([]);
+  const [foodEntries, setFoodEntries] = useState<FoodData[]>([]);
   
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -43,6 +56,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const storedMoodEntries = localStorage.getItem('zenmind_moodEntries');
       const storedMeditationSessions = localStorage.getItem('zenmind_meditationSessions');
       const storedExpenses = localStorage.getItem('zenmind_expenses');
+      const storedFoodEntries = localStorage.getItem('zenmind_foodEntries');
       
       if (storedMoodEntries) {
         const parsedMoods = JSON.parse(storedMoodEntries);
@@ -70,6 +84,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }));
         setExpenses(expensesWithDates);
       }
+
+      if (storedFoodEntries) {
+        const parsedFoodEntries = JSON.parse(storedFoodEntries);
+        const foodEntriesWithDates = parsedFoodEntries.map((food: any) => ({
+          ...food,
+          date: new Date(food.date)
+        }));
+        setFoodEntries(foodEntriesWithDates);
+      }
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
     }
@@ -87,6 +110,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('zenmind_expenses', JSON.stringify(expenses));
   }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem('zenmind_foodEntries', JSON.stringify(foodEntries));
+  }, [foodEntries]);
   
   const addMoodEntry = (entry: MoodData) => {
     const existingIndex = moodEntries.findIndex(
@@ -113,15 +140,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const deleteExpense = (id: string) => {
     setExpenses(prev => prev.filter(expense => expense.id !== id));
   };
+
+  const addFoodEntry = (food: FoodData) => {
+    setFoodEntries(prev => [...prev, food]);
+  };
+
+  const deleteFoodEntry = (id: string) => {
+    setFoodEntries(prev => prev.filter(food => food.id !== id));
+  };
   
   const value = {
     moodEntries,
     meditationSessions,
     expenses,
+    foodEntries,
     addMoodEntry,
     addMeditationSession,
     addExpense,
     deleteExpense,
+    addFoodEntry,
+    deleteFoodEntry,
   };
   
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

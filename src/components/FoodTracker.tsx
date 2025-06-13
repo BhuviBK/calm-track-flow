@@ -73,7 +73,10 @@ const FoodTracker: React.FC = () => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Food Name</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Food Name
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Apple, Chicken Breast" {...field} />
                   </FormControl>
@@ -87,7 +90,10 @@ const FoodTracker: React.FC = () => {
               name="calories"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Calories per serving</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Calories per serving
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -109,7 +115,10 @@ const FoodTracker: React.FC = () => {
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Quantity</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Quantity
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -131,7 +140,10 @@ const FoodTracker: React.FC = () => {
               name="meal"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Meal</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Meal
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>

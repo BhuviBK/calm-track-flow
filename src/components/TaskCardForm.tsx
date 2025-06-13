@@ -46,8 +46,9 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
+            <label htmlFor="title" className="text-sm font-medium flex items-center gap-1">
               Task Title
+              <span className="text-red-500">*</span>
             </label>
             <Input
               id="title"

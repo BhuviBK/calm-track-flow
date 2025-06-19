@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface MoodData {
@@ -42,6 +41,8 @@ interface AppContextType {
   addFoodEntry: (food: FoodData) => void;
   deleteFoodEntry: (id: string) => void;
 }
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [moodEntries, setMoodEntries] = useState<MoodData[]>([]);

@@ -38,11 +38,10 @@ interface AppContextType {
   addMeditationSession: (session: MeditationData) => void;
   addExpense: (expense: ExpenseData) => void;
   deleteExpense: (id: string) => void;
+  updateExpense: (expense: ExpenseData) => void;
   addFoodEntry: (food: FoodData) => void;
   deleteFoodEntry: (id: string) => void;
 }
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [moodEntries, setMoodEntries] = useState<MoodData[]>([]);
@@ -141,6 +140,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setExpenses(prev => prev.filter(expense => expense.id !== id));
   };
 
+  const updateExpense = (expense: ExpenseData) => {
+    setExpenses(prev => prev.map(e => e.id === expense.id ? expense : e));
+  };
+
   const addFoodEntry = (food: FoodData) => {
     setFoodEntries(prev => [...prev, food]);
   };
@@ -158,6 +161,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addMeditationSession,
     addExpense,
     deleteExpense,
+    updateExpense,
     addFoodEntry,
     deleteFoodEntry,
   };

@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
 import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
@@ -8,18 +10,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Trash2, Download, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 
 const expenseSchema = z.object({
   amount: z.coerce.number().positive('Amount must be positive'),
   category: z.string().min(1, 'Category is required'),
-  description: z.string().optional()
+  description: z.string().optional(),
+  date: z.date({
+    required_error: 'Date is required',
+  })
 });
 
 const expenseCategories = ['Food', 'Transportation', 'Housing', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Other'];
@@ -48,7 +56,8 @@ const ExpenseList: React.FC = () => {
     defaultValues: {
       amount: 0,
       category: '',
-      description: ''
+      description: '',
+      date: new Date()
     }
   });
 
@@ -57,7 +66,8 @@ const ExpenseList: React.FC = () => {
     form.reset({
       amount: expense.amount,
       category: expense.category,
-      description: expense.description
+      description: expense.description,
+      date: new Date(expense.date)
     });
     setIsEditDialogOpen(true);
   };
@@ -69,7 +79,8 @@ const ExpenseList: React.FC = () => {
       ...editingExpense,
       amount: Number(values.amount),
       category: values.category,
-      description: values.description || ''
+      description: values.description || '',
+      date: values.date
     };
     updateExpense(updatedExpense);
     
@@ -219,6 +230,50 @@ const ExpenseList: React.FC = () => {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleEditSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="flex items-center gap-1">
+                      Date
+                      <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date > new Date()}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="amount"

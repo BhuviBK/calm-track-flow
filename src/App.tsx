@@ -13,6 +13,7 @@ import MeditatePage from "./pages/MeditatePage";
 import TrackPage from "./pages/TrackPage";
 import TodoPage from "./pages/TodoPage";
 import CalendarPage from "./pages/CalendarPage";
+import CalendarTodoPage from "./pages/CalendarTodoPage";
 import ExercisePage from "./pages/ExercisePage";
 import ExpensePage from "./pages/ExpensePage";
 import FoodPage from "./pages/FoodPage";
@@ -40,6 +41,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/todo" element={<TodoPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/calendar-todo" element={<CalendarTodoPage />} />
               <Route path="/meditate" element={<MeditatePage />} />
               <Route path="/exercise" element={<ExercisePage />} />
               <Route path="/track" element={<TrackPage />} />

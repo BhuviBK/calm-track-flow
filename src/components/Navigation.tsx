@@ -14,7 +14,6 @@ const Navigation: React.FC = () => {
     { path: '/', icon: <Home className="w-5 h-5" />, label: 'Home' },
     // Task Management Group
     { path: '/todo', icon: <Check className="w-5 h-5" />, label: 'Todo List', group: 'tasks' },
-    { path: '/calendar', icon: <Calendar className="w-5 h-5" />, label: 'Calendar', group: 'tasks' },
     { path: '/calendar-todo', icon: <CalendarCheck className="w-5 h-5" />, label: 'Todo Calendar', group: 'tasks' },
     { path: '/expense', icon: <DollarSign className="w-5 h-5" />, label: 'Expenses', group: 'tasks' },
     { path: '/pomodoro', icon: <Timer className="w-5 h-5" />, label: 'Pomodoro', group: 'tasks' },

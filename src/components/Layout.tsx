@@ -27,29 +27,37 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Navigation />
         </div>
         
-        {/* Mobile Navigation - Hamburger Menu */}
+        {/* Mobile Header with Navigation Menu */}
         {isMobile && (
-          <div className="md:hidden fixed top-4 left-4 z-30 animate-fade-in">
-            <Sheet>
-              <SheetTrigger className="p-2 rounded-md bg-white dark:bg-gray-800 shadow-md flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <Menu className="h-6 w-6 text-forest-600 dark:text-forest-400" />
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[240px] p-0">
-                <div className="flex items-center justify-start p-4 border-b">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-forest-500 to-green-400 flex items-center justify-center animate-pulse-gentle">
-                    <span className="text-white font-bold text-sm">E</span>
+          <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 animate-fade-in">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-forest-500 to-green-400 flex items-center justify-center animate-pulse-gentle">
+                  <span className="text-white font-bold text-sm">E</span>
+                </div>
+                <h1 className="text-lg font-bold ml-2 text-gray-800 dark:text-white">Everyday Task</h1>
+              </div>
+              <Sheet>
+                <SheetTrigger className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center transition-all duration-300 hover:scale-110">
+                  <Menu className="h-6 w-6 text-forest-600 dark:text-forest-400" />
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[240px] p-0">
+                  <div className="flex items-center justify-start p-4 border-b">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-forest-500 to-green-400 flex items-center justify-center animate-pulse-gentle">
+                      <span className="text-white font-bold text-sm">E</span>
+                    </div>
+                    <h1 className="text-xl font-bold ml-2 text-gray-800 dark:text-white">Everyday Task</h1>
                   </div>
-                  <h1 className="text-xl font-bold ml-2 text-gray-800 dark:text-white">Everyday Task</h1>
-                </div>
-                <div className="p-4">
-                  <Navigation />
-                </div>
-              </SheetContent>
-            </Sheet>
+                  <div className="p-4">
+                    <Navigation />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         )}
         
-        <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden overflow-y-auto px-2 md:px-6">
+        <main className={cn("flex-1 pb-20 md:pb-0 overflow-x-hidden overflow-y-auto px-2 md:px-6", isMobile ? "pt-16" : "")}>
           <div className={cn("max-w-full animate-fade-in", isMobile ? "pb-24" : "md:pr-4")}>
             {children}
           </div>

@@ -45,13 +45,6 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">User ID</label>
-                  <p className="text-sm font-mono text-muted-foreground">{user?.id}</p>
-                </div>
-              </div>
             </div>
 
             {/* Account Actions */}

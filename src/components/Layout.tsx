@@ -35,16 +35,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
           
-          {/* User info */}
-          <div className="mb-4 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-muted-foreground truncate">
-                  {user?.email}
-                </p>
-              </div>
-            </div>
-          </div>
           
           <Navigation />
         </div>
@@ -65,11 +55,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <h1 className="text-xl font-bold ml-2 text-gray-800 dark:text-white">Everyday Task</h1>
                   </div>
                   <div className="p-4">
-                    <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {user?.email}
-                      </p>
-                    </div>
                     <Navigation />
                   </div>
                 </SheetContent>

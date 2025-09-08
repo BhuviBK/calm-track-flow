@@ -14,9 +14,7 @@ import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import MeditatePage from "./pages/MeditatePage";
 import TrackPage from "./pages/TrackPage";
-import TodoPageWithSupabase from "./pages/TodoPageWithSupabase";
 import CalendarPage from "./pages/CalendarPage";
-import CalendarTodoPageWithSupabase from "./pages/CalendarTodoPageWithSupabase";
 import ProfilePage from "./pages/ProfilePage";
 import ExercisePage from "./pages/ExercisePage";
 import ExpensePage from "./pages/ExpensePage";
@@ -45,9 +43,7 @@ const App = () => {
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/todo" element={<ProtectedRoute><TodoPageWithSupabase /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-              <Route path="/calendar-todo" element={<ProtectedRoute><CalendarTodoPageWithSupabase /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="/meditate" element={<ProtectedRoute><MeditatePage /></ProtectedRoute>} />
                 <Route path="/exercise" element={<ProtectedRoute><ExercisePage /></ProtectedRoute>} />

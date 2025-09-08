@@ -13,8 +13,6 @@ const Navigation: React.FC = () => {
   const navItems = [
     { path: '/', icon: <Home className="w-5 h-5" />, label: 'Home' },
     // Task Management Group
-    { path: '/todo', icon: <Check className="w-5 h-5" />, label: 'Todo List', group: 'tasks' },
-    { path: '/calendar-todo', icon: <CalendarCheck className="w-5 h-5" />, label: 'Todo Calendar', group: 'tasks' },
     { path: '/expense', icon: <DollarSign className="w-5 h-5" />, label: 'Expenses', group: 'tasks' },
     { path: '/pomodoro', icon: <Timer className="w-5 h-5" />, label: 'Pomodoro', group: 'tasks' },
     { path: '/exercise-timer', icon: <Activity className="w-5 h-5" />, label: 'Exercise Timer', group: 'tasks' },

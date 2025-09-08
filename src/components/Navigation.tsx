@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, Timer, UtensilsCrossed, CalendarCheck } from 'lucide-react';
+import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, Timer, UtensilsCrossed, CalendarCheck, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -23,11 +23,14 @@ const Navigation: React.FC = () => {
     { path: '/exercise', icon: <Dumbbell className="w-5 h-5" />, label: 'Exercise', group: 'wellbeing' },
     { path: '/track', icon: <Activity className="w-5 h-5" />, label: 'Mood', group: 'wellbeing' },
     { path: '/food', icon: <UtensilsCrossed className="w-5 h-5" />, label: 'Calories', group: 'wellbeing' },
+    // Profile Group
+    { path: '/profile', icon: <User className="w-5 h-5" />, label: 'Profile', group: 'profile' },
   ];
 
   // Group the items by their category
   const taskItems = navItems.filter(item => item.group === 'tasks');
   const wellbeingItems = navItems.filter(item => item.group === 'wellbeing');
+  const profileItems = navItems.filter(item => item.group === 'profile');
   const otherItems = navItems.filter(item => !item.group);
 
   const handleNavigation = (path: string) => {
@@ -91,6 +94,9 @@ const Navigation: React.FC = () => {
         
         {/* Wellbeing Group */}
         {wellbeingItems.length > 0 && renderNavGroup("Wellbeing", wellbeingItems)}
+        
+        {/* Profile Group */}
+        {profileItems.length > 0 && renderNavGroup("Account", profileItems)}
       </div>
     </nav>
   );

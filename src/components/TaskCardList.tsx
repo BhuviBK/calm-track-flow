@@ -128,13 +128,14 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
         style={{ animationDelay: `${index * 50}ms` }}
       >
         <CardHeader className="pb-2">
-          <CardTitle className="flex justify-between text-lg">
-            <span className={task.completed ? 'line-through text-gray-500' : ''}>
+          <CardTitle className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-lg">
+            <span className={`${task.completed ? 'line-through text-gray-500' : ''} break-words`}>
               {task.title}
             </span>
             {!isToday(parseISO(task.date)) && !task.completed && (
-              <span className="text-amber-500 flex items-center gap-1 text-sm font-normal">
-                <CalendarIcon className="h-3 w-3" /> Carried forward
+              <span className="text-amber-500 flex items-center gap-1 text-sm font-normal self-start sm:self-center">
+                <CalendarIcon className="h-3 w-3 flex-shrink-0" /> 
+                <span className="whitespace-nowrap">Carried forward</span>
               </span>
             )}
           </CardTitle>
@@ -148,7 +149,9 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
                 checked={task.completed}
                 onClick={() => toggleTaskCompletion(task.id)}
               />
-              <Label htmlFor={`completed-${task.id}`}>Mark as done</Label>
+              <Label htmlFor={`completed-${task.id}`} className="text-sm sm:text-base">
+                Mark as done
+              </Label>
             </div>
           </RadioGroup>
         </CardContent>

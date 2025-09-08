@@ -16,7 +16,8 @@ import MeditatePage from "./pages/MeditatePage";
 import TrackPage from "./pages/TrackPage";
 import TodoPageWithSupabase from "./pages/TodoPageWithSupabase";
 import CalendarPage from "./pages/CalendarPage";
-import CalendarTodoPage from "./pages/CalendarTodoPage";
+import CalendarTodoPageWithSupabase from "./pages/CalendarTodoPageWithSupabase";
+import ProfilePage from "./pages/ProfilePage";
 import ExercisePage from "./pages/ExercisePage";
 import ExpensePage from "./pages/ExpensePage";
 import FoodPage from "./pages/FoodPage";
@@ -46,7 +47,8 @@ const App = () => {
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                 <Route path="/todo" element={<ProtectedRoute><TodoPageWithSupabase /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-                <Route path="/calendar-todo" element={<ProtectedRoute><CalendarTodoPage /></ProtectedRoute>} />
+              <Route path="/calendar-todo" element={<ProtectedRoute><CalendarTodoPageWithSupabase /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="/meditate" element={<ProtectedRoute><MeditatePage /></ProtectedRoute>} />
                 <Route path="/exercise" element={<ProtectedRoute><ExercisePage /></ProtectedRoute>} />
                 <Route path="/track" element={<ProtectedRoute><TrackPage /></ProtectedRoute>} />

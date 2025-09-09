@@ -10,26 +10,23 @@ import { format, isToday, isYesterday, isBefore, parseISO, startOfDay } from 'da
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { v4 as uuidv4 } from 'uuid';
 
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-  date: string; // ISO string date
-}
+import { Todo } from '@/hooks/useTodos';
 
 interface TaskCardListProps {
-  tasks: Task[];
-  onTasksChange: (tasks: Task[]) => void;
+  todos: Todo[];
+  onAddTodo: (title: string) => Promise<void>;
+  onUpdateTodo: (id: string, updates: Partial<Todo>) => Promise<void>;
+  onDeleteTodo: (id: string) => Promise<void>;
   onConfetti?: () => void;
 }
 
-const TaskCardList: React.FC<TaskCardListProps> = ({ tasks, onTasksChange, onConfetti }) => {
+const TaskCardList: React.FC<TaskCardListProps> = ({ todos, onAddTodo, onUpdateTodo, onDeleteTodo, onConfetti }) => {
   const [quickAddValue, setQuickAddValue] = useState('');
   const [activeTab, setActiveTab] = useState('today');
   const { toast } = useToast();
 
-  // Group tasks by date (today, yesterday, earlier)
-  const groupedTasks = React.useMemo(() => {
+  // Group todos by date (today, yesterday, earlier)
+  const groupedTodos = React.useMemo(() => {
     const today = new Date();
     const todayStart = startOfDay(today);
     const yesterday = new Date(today);
@@ -37,56 +34,51 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ tasks, onTasksChange, onCon
     const yesterdayStart = startOfDay(yesterday);
 
     return {
-      today: tasks.filter(task => {
-        // If task is not completed and from the past, carry it forward to today
-        if (!task.completed && isBefore(parseISO(task.date), todayStart)) {
+      today: todos.filter(todo => {
+        const todoDate = parseISO(todo.created_at);
+        // If todo is not completed and from the past, carry it forward to today
+        if (!todo.completed && isBefore(todoDate, todayStart)) {
           return true;
         }
         // Or if it's actually from today
-        return task.date === today.toISOString().split('T')[0];
+        return isToday(todoDate);
       }),
-      yesterday: tasks.filter(task => 
-        task.date === yesterday.toISOString().split('T')[0] && task.completed
-      ),
-      earlier: tasks.filter(task => {
-        const taskDate = parseISO(task.date);
-        return isBefore(taskDate, yesterdayStart) && 
-               task.completed && 
-               task.date !== today.toISOString().split('T')[0];
+      yesterday: todos.filter(todo => {
+        const todoDate = parseISO(todo.created_at);
+        return isYesterday(todoDate) && todo.completed;
+      }),
+      earlier: todos.filter(todo => {
+        const todoDate = parseISO(todo.created_at);
+        return isBefore(todoDate, yesterdayStart) && 
+               todo.completed && 
+               !isToday(todoDate) && 
+               !isYesterday(todoDate);
       })
     };
-  }, [tasks]);
+  }, [todos]);
 
-  const addQuickTask = () => {
+  const addQuickTask = async () => {
     const title = quickAddValue.trim();
     if (!title) return;
 
-    const newTask: Task = {
-      id: uuidv4(),
-      title,
-      completed: false,
-      date: new Date().toISOString().split('T')[0]
-    };
-    
-    onTasksChange([...tasks, newTask]);
+    await onAddTodo(title);
     setQuickAddValue('');
-    toast({
-      title: "Task Added",
-      description: "Your new task has been added successfully.",
-    });
   };
 
-  const toggleTaskCompletion = (id: string) => {
-    const task = tasks.find(t => t.id === id);
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    onTasksChange(updatedTasks);
+  const toggleTaskCompletion = async (id: string) => {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
     
-    if (task && !task.completed) {
-      if (onConfetti) {
-        onConfetti();
-      }
+    const newCompleted = !todo.completed;
+    const newStatus = newCompleted ? 'done' : 'todo';
+    
+    await onUpdateTodo(id, { 
+      completed: newCompleted,
+      status: newStatus
+    });
+    
+    if (newCompleted && onConfetti) {
+      onConfetti();
       toast({
         title: "Task Completed",
         description: "Great job on completing your task!",
@@ -94,16 +86,12 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ tasks, onTasksChange, onCon
     }
   };
 
-  const editTask = (id: string, newTitle: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { ...task, title: newTitle } : task
-    );
-    onTasksChange(updatedTasks);
+  const editTask = async (id: string, newTitle: string) => {
+    await onUpdateTodo(id, { title: newTitle });
   };
 
-  const deleteTask = (id: string) => {
-    const updatedTasks = tasks.filter(task => task.id !== id);
-    onTasksChange(updatedTasks);
+  const deleteTask = async (id: string) => {
+    await onDeleteTodo(id);
   };
 
   const formatDate = (dateString: string) => {
@@ -113,35 +101,44 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ tasks, onTasksChange, onCon
     return format(date, 'EEEE, MMMM d');
   };
 
-  const renderTasks = (taskList: Task[]) => {
-    if (taskList.length === 0) {
+  const renderTodos = (todoList: Todo[]) => {
+    if (todoList.length === 0) {
       return (
         <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">No tasks for this time period</p>
+          <p className="text-muted-foreground mb-4">No todos for this time period</p>
         </div>
       );
     }
 
     return (
       <div className="space-y-2">
-        {taskList.map((task, index) => (
-          <div key={task.id} className="relative">
-            {!isToday(parseISO(task.date)) && !task.completed && (
-              <div className="absolute -top-1 -right-1 z-10">
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full flex items-center gap-1">
-                  <CalendarIcon className="h-3 w-3" />
-                  Carried forward
-                </span>
-              </div>
-            )}
-            <TaskCard
-              task={task}
-              onToggleComplete={toggleTaskCompletion}
-              onEdit={editTask}
-              onDelete={deleteTask}
-            />
-          </div>
-        ))}
+        {todoList.map((todo, index) => {
+          const todoDate = parseISO(todo.created_at);
+          return (
+            <div key={todo.id} className="relative">
+              {!isToday(todoDate) && !todo.completed && (
+                <div className="absolute -top-1 -right-1 z-10">
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full flex items-center gap-1">
+                    <CalendarIcon className="h-3 w-3" />
+                    Carried forward
+                  </span>
+                </div>
+              )}
+              <TaskCard
+                task={{
+                  id: todo.id,
+                  title: todo.title,
+                  completed: todo.completed,
+                  date: new Date(todo.created_at).toISOString().split('T')[0],
+                  status: todo.status
+                }}
+                onToggleComplete={toggleTaskCompletion}
+                onEdit={editTask}
+                onDelete={deleteTask}
+              />
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -189,15 +186,15 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ tasks, onTasksChange, onCon
             </Button>
           </div>
           
-          {renderTasks(groupedTasks.today)}
+          {renderTodos(groupedTodos.today)}
         </TabsContent>
 
         <TabsContent value="yesterday" className="space-y-4 mt-4">
-          {renderTasks(groupedTasks.yesterday)}
+          {renderTodos(groupedTodos.yesterday)}
         </TabsContent>
 
         <TabsContent value="earlier" className="space-y-4 mt-4">
-          {renderTasks(groupedTasks.earlier)}
+          {renderTodos(groupedTodos.earlier)}
         </TabsContent>
       </Tabs>
       

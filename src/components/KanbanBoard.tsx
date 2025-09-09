@@ -4,96 +4,63 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus } from 'lucide-react';
 import TaskCard from './TaskCard';
-import { v4 as uuidv4 } from 'uuid';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-  date: string;
-  status?: 'todo' | 'in-progress' | 'done';
-}
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Todo } from '@/hooks/useTodos';
 
 interface KanbanBoardProps {
-  tasks: Task[];
-  onTasksChange: (tasks: Task[]) => void;
+  todos: Todo[];
+  onAddTodo: (title: string, status?: 'todo' | 'in-progress' | 'done') => Promise<void>;
+  onUpdateTodo: (id: string, updates: Partial<Todo>) => Promise<void>;
+  onDeleteTodo: (id: string) => Promise<void>;
   onConfetti?: () => void;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTasksChange, onConfetti }) => {
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ todos, onAddTodo, onUpdateTodo, onDeleteTodo, onConfetti }) => {
   const [newTaskInputs, setNewTaskInputs] = useState({
     todo: '',
     'in-progress': '',
     done: ''
   });
 
-  // Enhance tasks with status if not present
-  const enhancedTasks = tasks.map(task => ({
-    ...task,
-    status: task.status || (task.completed ? 'done' : 'todo')
-  }));
-
   const columns = [
-    { id: 'todo', title: 'To Do', color: 'border-blue-200 bg-blue-50/50' },
-    { id: 'in-progress', title: 'In Progress', color: 'border-yellow-200 bg-yellow-50/50' },
-    { id: 'done', title: 'Done', color: 'border-green-200 bg-green-50/50' }
+    { id: 'todo', title: 'To Do', color: 'border-primary/20 bg-primary/5' },
+    { id: 'in-progress', title: 'In Progress', color: 'border-secondary/20 bg-secondary/5' },
+    { id: 'done', title: 'Done', color: 'border-green-500/20 bg-green-50 dark:bg-green-950/20' }
   ];
 
   const getTasksByStatus = (status: string) => {
-    return enhancedTasks.filter(task => {
-      if (status === 'done') return task.completed || task.status === 'done';
-      if (status === 'todo') return !task.completed && (!task.status || task.status === 'todo');
-      return task.status === status;
-    });
+    return todos.filter(todo => todo.status === status);
   };
 
-  const addTask = (status: 'todo' | 'in-progress' | 'done') => {
+  const addTask = async (status: 'todo' | 'in-progress' | 'done') => {
     const title = newTaskInputs[status].trim();
     if (!title) return;
 
-    const newTask: Task = {
-      id: uuidv4(),
-      title,
-      completed: status === 'done',
-      date: new Date().toISOString().split('T')[0],
-      status: status
-    };
-
-    onTasksChange([...tasks, newTask]);
+    await onAddTodo(title, status);
     setNewTaskInputs(prev => ({ ...prev, [status]: '' }));
   };
 
-  const moveTask = (taskId: string, newStatus: 'todo' | 'in-progress' | 'done') => {
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        const updated = { 
-          ...task, 
-          status: newStatus, 
-          completed: newStatus === 'done' 
-        };
+  const moveTask = async (taskId: string, newStatus: 'todo' | 'in-progress' | 'done') => {
+    const task = todos.find(t => t.id === taskId);
+    if (!task) return;
         
-        // Trigger confetti if moving to done
-        if (newStatus === 'done' && !task.completed && onConfetti) {
-          setTimeout(onConfetti, 100);
-        }
-        
-        return updated;
-      }
-      return task;
+    // Trigger confetti if moving to done
+    if (newStatus === 'done' && task.status !== 'done' && onConfetti) {
+      setTimeout(onConfetti, 100);
+    }
+    
+    await onUpdateTodo(taskId, { 
+      status: newStatus, 
+      completed: newStatus === 'done' 
     });
-    onTasksChange(updatedTasks);
   };
 
-  const editTask = (taskId: string, newTitle: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === taskId ? { ...task, title: newTitle } : task
-    );
-    onTasksChange(updatedTasks);
+  const editTask = async (taskId: string, newTitle: string) => {
+    await onUpdateTodo(taskId, { title: newTitle });
   };
 
-  const deleteTask = (taskId: string) => {
-    const updatedTasks = tasks.filter(task => task.id !== taskId);
-    onTasksChange(updatedTasks);
+  const deleteTask = async (taskId: string) => {
+    await onDeleteTodo(taskId);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent, status: 'todo' | 'in-progress' | 'done') => {
@@ -102,61 +69,111 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTasksChange, onConfe
     }
   };
 
+  const handleDragEnd = (result: any) => {
+    const { destination, source, draggableId } = result;
+
+    // Dropped outside the list
+    if (!destination) {
+      return;
+    }
+
+    // Dropped in the same position
+    if (destination.droppableId === source.droppableId && destination.index === source.index) {
+      return;
+    }
+
+    // Move task to new status
+    const newStatus = destination.droppableId as 'todo' | 'in-progress' | 'done';
+    moveTask(draggableId, newStatus);
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {columns.map(column => {
-        const columnTasks = getTasksByStatus(column.id);
-        
-        return (
-          <Card key={column.id} className={`${column.color} border-2`}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center justify-between">
-                {column.title}
-                <span className="text-sm font-normal text-muted-foreground">
-                  {columnTasks.length}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {columnTasks.map(task => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onToggleComplete={(id) => {
-                    const currentTask = tasks.find(t => t.id === id);
-                    const newStatus = currentTask?.completed ? 'todo' : 'done';
-                    moveTask(id, newStatus);
-                  }}
-                  onEdit={editTask}
-                  onDelete={deleteTask}
-                />
-              ))}
-              
-              <div className="flex gap-2">
-                <Input
-                  placeholder={`Add to ${column.title}...`}
-                  value={newTaskInputs[column.id as keyof typeof newTaskInputs]}
-                  onChange={(e) => setNewTaskInputs(prev => ({ 
-                    ...prev, 
-                    [column.id]: e.target.value 
-                  }))}
-                  onKeyPress={(e) => handleKeyPress(e, column.id as 'todo' | 'in-progress' | 'done')}
-                  className="text-sm"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => addTask(column.id as 'todo' | 'in-progress' | 'done')}
-                  className="shrink-0 h-9 w-9 p-0"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {columns.map(column => {
+          const columnTasks = getTasksByStatus(column.id);
+          
+          return (
+            <Card key={column.id} className={`${column.color} border-2`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center justify-between">
+                  {column.title}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {columnTasks.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Droppable droppableId={column.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className={`min-h-[200px] space-y-3 p-2 rounded-lg transition-colors ${
+                        snapshot.isDraggingOver ? 'bg-primary/10' : ''
+                      }`}
+                    >
+                      {columnTasks.map((task, index) => (
+                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`${
+                                snapshot.isDragging ? 'opacity-50' : ''
+                              }`}
+                            >
+                              <TaskCard
+                                task={{
+                                  id: task.id,
+                                  title: task.title,
+                                  completed: task.completed,
+                                  date: new Date(task.created_at).toISOString().split('T')[0],
+                                  status: task.status
+                                }}
+                                onToggleComplete={(id) => {
+                                  const newStatus = task.completed ? 'todo' : 'done';
+                                  moveTask(id, newStatus);
+                                }}
+                                onEdit={editTask}
+                                onDelete={deleteTask}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+                
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={`Add to ${column.title}...`}
+                    value={newTaskInputs[column.id as keyof typeof newTaskInputs]}
+                    onChange={(e) => setNewTaskInputs(prev => ({ 
+                      ...prev, 
+                      [column.id]: e.target.value 
+                    }))}
+                    onKeyPress={(e) => handleKeyPress(e, column.id as 'todo' | 'in-progress' | 'done')}
+                    className="text-sm"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => addTask(column.id as 'todo' | 'in-progress' | 'done')}
+                    className="shrink-0 h-9 w-9 p-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </DragDropContext>
   );
 };
 

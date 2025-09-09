@@ -10,33 +10,28 @@ import ReactConfetti from 'react-confetti';
 import TaskCardList from '@/components/TaskCardList';
 import KanbanBoard from '@/components/KanbanBoard';
 import NotificationSettings from '@/components/NotificationSettings';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-  date: string;
-  status?: 'todo' | 'in-progress' | 'done';
-}
+import { useTodos } from '@/hooks/useTodos';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TodoPage: React.FC = () => {
   const [motivation, setMotivation] = useState<string>("You've got this! Complete your tasks one by one.");
   const [editingMotivation, setEditingMotivation] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
-      ...task,
-      date: task.date || new Date().toISOString().split('T')[0]
-    })) : [];
-  });
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+  const { todos, loading, addTodo, updateTodo, deleteTodo } = useTodos();
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  // Save tasks to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
+  // Show authentication message if not logged in
+  if (!user) {
+    return (
+      <Layout>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Please log in to manage your todos.</p>
+        </div>
+      </Layout>
+    );
+  }
 
   // Load motivation from localStorage on component mount
   useEffect(() => {
@@ -136,16 +131,24 @@ const TodoPage: React.FC = () => {
         </div>
 
         {/* Task Views */}
-        {viewMode === 'list' ? (
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading todos...</p>
+          </div>
+        ) : viewMode === 'list' ? (
           <TaskCardList 
-            tasks={tasks}
-            onTasksChange={setTasks}
+            todos={todos}
+            onAddTodo={addTodo}
+            onUpdateTodo={updateTodo}
+            onDeleteTodo={deleteTodo}
             onConfetti={() => setShowConfetti(true)} 
           />
         ) : (
           <KanbanBoard 
-            tasks={tasks}
-            onTasksChange={setTasks}
+            todos={todos}
+            onAddTodo={addTodo}
+            onUpdateTodo={updateTodo}
+            onDeleteTodo={deleteTodo}
             onConfetti={() => setShowConfetti(true)}
           />
         )}

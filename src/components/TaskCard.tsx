@@ -10,6 +10,7 @@ interface Task {
   title: string;
   completed: boolean;
   date: string;
+  status?: 'todo' | 'in-progress' | 'done';
 }
 
 interface TaskCardProps {

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, Timer, UtensilsCrossed, CalendarCheck, User } from 'lucide-react';
+import { Home, Calendar, Clock, Activity, Check, Dumbbell, DollarSign, Timer, UtensilsCrossed, CalendarCheck, User, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -13,6 +13,7 @@ const Navigation: React.FC = () => {
   const navItems = [
     { path: '/', icon: <Home className="w-5 h-5" />, label: 'Home' },
     // Task Management Group
+    { path: '/todo', icon: <CheckSquare className="w-5 h-5" />, label: 'Todo', group: 'tasks' },
     { path: '/expense', icon: <DollarSign className="w-5 h-5" />, label: 'Expenses', group: 'tasks' },
     { path: '/pomodoro', icon: <Timer className="w-5 h-5" />, label: 'Pomodoro', group: 'tasks' },
     { path: '/exercise-timer', icon: <Activity className="w-5 h-5" />, label: 'Exercise Timer', group: 'tasks' },

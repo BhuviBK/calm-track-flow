@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { Link } from 'react-router-dom';
-import TaskCardList from '@/components/TaskCardList';
+import TaskPreview from '@/components/TaskPreview';
 
 const Index: React.FC = () => {
   const { expenses, moodEntries } = useAppContext();
@@ -70,7 +70,7 @@ const Index: React.FC = () => {
                 <Link to="/todo">View All Tasks</Link>
               </Button>
             </div>
-            <TaskCardList />
+            <TaskPreview />
           </div>
           
           <div className="animate-fade-in" style={{ animationDelay: '600ms' }}>

@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import TaskCardForm from './TaskCardForm';
+import TaskCard from './TaskCard';
 import { format, isToday, isYesterday, isBefore, parseISO, startOfDay } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Task {
   id: string;
@@ -18,26 +18,15 @@ interface Task {
 }
 
 interface TaskCardListProps {
+  tasks: Task[];
+  onTasksChange: (tasks: Task[]) => void;
   onConfetti?: () => void;
 }
 
-const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
-      ...task,
-      // Ensure all tasks have a date property, default to today for old tasks
-      date: task.date || new Date().toISOString().split('T')[0]
-    })) : [];
-  });
-  const [showForm, setShowForm] = useState(false);
+const TaskCardList: React.FC<TaskCardListProps> = ({ tasks, onTasksChange, onConfetti }) => {
+  const [quickAddValue, setQuickAddValue] = useState('');
   const [activeTab, setActiveTab] = useState('today');
   const { toast } = useToast();
-
-  // Save tasks to localStorage whenever they change
-  React.useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
 
   // Group tasks by date (today, yesterday, earlier)
   const groupedTasks = React.useMemo(() => {
@@ -68,40 +57,53 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
     };
   }, [tasks]);
 
-  const addTask = (newTask: Omit<Task, 'date'>) => {
-    const taskWithDate = {
-      ...newTask,
-      date: new Date().toISOString().split('T')[0] // Add today's date
+  const addQuickTask = () => {
+    const title = quickAddValue.trim();
+    if (!title) return;
+
+    const newTask: Task = {
+      id: uuidv4(),
+      title,
+      completed: false,
+      date: new Date().toISOString().split('T')[0]
     };
     
-    setTasks([...tasks, taskWithDate as Task]);
-    setShowForm(false);
+    onTasksChange([...tasks, newTask]);
+    setQuickAddValue('');
     toast({
       title: "Task Added",
       description: "Your new task has been added successfully.",
-      className: "animate-fade-in",
     });
   };
 
   const toggleTaskCompletion = (id: string) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
-    
-    // Show toast for completed task
     const task = tasks.find(t => t.id === id);
+    const updatedTasks = tasks.map(task => 
+      task.id === id ? { ...task, completed: !task.completed } : task
+    );
+    onTasksChange(updatedTasks);
+    
     if (task && !task.completed) {
-      // Trigger confetti if a task is completed
       if (onConfetti) {
         onConfetti();
       }
-      
       toast({
         title: "Task Completed",
         description: "Great job on completing your task!",
-        className: "animate-fade-in",
       });
     }
+  };
+
+  const editTask = (id: string, newTitle: string) => {
+    const updatedTasks = tasks.map(task => 
+      task.id === id ? { ...task, title: newTitle } : task
+    );
+    onTasksChange(updatedTasks);
+  };
+
+  const deleteTask = (id: string) => {
+    const updatedTasks = tasks.filter(task => task.id !== id);
+    onTasksChange(updatedTasks);
   };
 
   const formatDate = (dateString: string) => {
@@ -114,49 +116,34 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
   const renderTasks = (taskList: Task[]) => {
     if (taskList.length === 0) {
       return (
-        <div className="text-center py-8 animate-fade-in">
-          <p className="text-gray-500 mb-4">No tasks for this time period</p>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-4">No tasks for this time period</p>
         </div>
       );
     }
 
-    return taskList.map((task, index) => (
-      <Card 
-        key={task.id} 
-        className={`${task.completed ? 'bg-gray-50 dark:bg-gray-800/50' : 'hover:border-calm-300'} 
-                    transition-all duration-300 animate-fade-in`}
-        style={{ animationDelay: `${index * 50}ms` }}
-      >
-        <CardHeader className="pb-2">
-          <CardTitle className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-lg">
-            <span className={`${task.completed ? 'line-through text-gray-500' : ''} break-words`}>
-              {task.title}
-            </span>
+    return (
+      <div className="space-y-2">
+        {taskList.map((task, index) => (
+          <div key={task.id} className="relative">
             {!isToday(parseISO(task.date)) && !task.completed && (
-              <span className="text-amber-500 flex items-center gap-1 text-sm font-normal self-start sm:self-center">
-                <CalendarIcon className="h-3 w-3 flex-shrink-0" /> 
-                <span className="whitespace-nowrap">Carried forward</span>
-              </span>
+              <div className="absolute -top-1 -right-1 z-10">
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full flex items-center gap-1">
+                  <CalendarIcon className="h-3 w-3" />
+                  Carried forward
+                </span>
+              </div>
             )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup defaultValue={task.completed ? "completed" : "pending"} className="flex">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem 
-                value="completed" 
-                id={`completed-${task.id}`}
-                checked={task.completed}
-                onClick={() => toggleTaskCompletion(task.id)}
-              />
-              <Label htmlFor={`completed-${task.id}`} className="text-sm sm:text-base">
-                Mark as done
-              </Label>
-            </div>
-          </RadioGroup>
-        </CardContent>
-      </Card>
-    ));
+            <TaskCard
+              task={task}
+              onToggleComplete={toggleTaskCompletion}
+              onEdit={editTask}
+              onDelete={deleteTask}
+            />
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -184,18 +171,25 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
         </TabsList>
 
         <TabsContent value="today" className="space-y-4 mt-4">
-          {renderTasks(groupedTasks.today)}
+          {/* Quick Add Task */}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add a new task..."
+              value={quickAddValue}
+              onChange={(e) => setQuickAddValue(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addQuickTask()}
+              className="flex-1"
+            />
+            <Button 
+              onClick={addQuickTask}
+              size="sm"
+              className="bg-purple-500 hover:bg-purple-600"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
           
-          {!showForm && (
-            <Card className="border-dashed border-2 hover:border-calm-300 cursor-pointer animate-fade-in"
-                  onClick={() => setShowForm(true)}>
-              <CardContent className="flex items-center justify-center py-6">
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" /> Add New Task
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {renderTasks(groupedTasks.today)}
         </TabsContent>
 
         <TabsContent value="yesterday" className="space-y-4 mt-4">
@@ -207,14 +201,6 @@ const TaskCardList: React.FC<TaskCardListProps> = ({ onConfetti }) => {
         </TabsContent>
       </Tabs>
       
-      {showForm && (
-        <div className="animate-fade-in">
-          <TaskCardForm 
-            onAddTask={addTask}
-            onCancel={() => setShowForm(false)}
-          />
-        </div>
-      )}
     </div>
   );
 };

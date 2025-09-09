@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 interface Task {
   id: string;
   title: string;
-  time: string;
   completed: boolean;
 }
 
@@ -19,7 +18,6 @@ interface TaskCardFormProps {
 
 const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
   const [title, setTitle] = useState('');
-  const [time, setTime] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +27,11 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
     const newTask: Task = {
       id: uuidv4(),
       title: title.trim(),
-      time: time || 'Anytime',
       completed: false
     };
     
     onAddTask(newTask);
     setTitle('');
-    setTime('');
   };
 
   return (
@@ -46,29 +42,14 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium flex items-center gap-1">
-              Task Title
-              <span className="text-red-500">*</span>
-            </label>
             <Input
               id="title"
-              placeholder="Enter task title"
+              placeholder="Enter task title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="transition-all duration-300 focus:border-calm-400"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="time" className="text-sm font-medium">
-              Time (optional)
-            </label>
-            <Input
-              id="time"
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="transition-all duration-300 focus:border-calm-400"
+              autoFocus
+              className="transition-all duration-300 focus:border-purple-400 text-base"
             />
           </div>
         </CardContent>
@@ -83,7 +64,7 @@ const TaskCardForm: React.FC<TaskCardFormProps> = ({ onAddTask, onCancel }) => {
           </Button>
           <Button 
             type="submit" 
-            className="bg-calm-500 hover:bg-calm-600 transition-colors"
+            className="bg-purple-500 hover:bg-purple-600 transition-colors"
           >
             Add Task
           </Button>

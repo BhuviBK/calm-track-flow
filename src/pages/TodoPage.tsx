@@ -3,18 +3,40 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit } from 'lucide-react';
+import { Edit, List, Kanban } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import ReactConfetti from 'react-confetti';
 import TaskCardList from '@/components/TaskCardList';
+import KanbanBoard from '@/components/KanbanBoard';
 import NotificationSettings from '@/components/NotificationSettings';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+  date: string;
+  status?: 'todo' | 'in-progress' | 'done';
+}
 
 const TodoPage: React.FC = () => {
   const [motivation, setMotivation] = useState<string>("You've got this! Complete your tasks one by one.");
   const [editingMotivation, setEditingMotivation] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const savedTasks = localStorage.getItem('tasks');
+    return savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
+      ...task,
+      date: task.date || new Date().toISOString().split('T')[0]
+    })) : [];
+  });
   const { toast } = useToast();
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   // Load motivation from localStorage on component mount
   useEffect(() => {
@@ -91,8 +113,42 @@ const TodoPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Task Card List */}
-        <TaskCardList onConfetti={() => setShowConfetti(true)} />
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2 bg-muted p-1 rounded-lg w-fit">
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="flex items-center gap-2"
+          >
+            <List className="h-4 w-4" />
+            List View
+          </Button>
+          <Button
+            variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('kanban')}
+            className="flex items-center gap-2"
+          >
+            <Kanban className="h-4 w-4" />
+            Kanban Board
+          </Button>
+        </div>
+
+        {/* Task Views */}
+        {viewMode === 'list' ? (
+          <TaskCardList 
+            tasks={tasks}
+            onTasksChange={setTasks}
+            onConfetti={() => setShowConfetti(true)} 
+          />
+        ) : (
+          <KanbanBoard 
+            tasks={tasks}
+            onTasksChange={setTasks}
+            onConfetti={() => setShowConfetti(true)}
+          />
+        )}
       </div>
     </Layout>
   );

@@ -3,7 +3,7 @@ import React from 'react';
 import Navigation from './Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, CheckSquare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -29,7 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between mb-6 transition-all duration-500 hover:translate-x-2">
             <div className="flex items-center">
               <div className="h-10 w-10 rounded-full bg-gradient-to-r from-forest-500 to-green-400 flex items-center justify-center animate-pulse-gentle">
-                <span className="text-white font-bold text-lg">E</span>
+                <CheckSquare className="text-white w-5 h-5" />
               </div>
               <h1 className="text-2xl font-bold ml-2 text-gray-800 dark:text-white transition-colors duration-300">Everyday Task</h1>
             </div>
@@ -50,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <SheetContent side="left" className="w-[240px] p-0">
                   <div className="flex items-center justify-start p-4 border-b">
                     <div className="h-8 w-8 rounded-full bg-gradient-to-r from-forest-500 to-green-400 flex items-center justify-center animate-pulse-gentle">
-                      <span className="text-white font-bold text-sm">E</span>
+                      <CheckSquare className="text-white w-4 h-4" />
                     </div>
                     <h1 className="text-xl font-bold ml-2 text-gray-800 dark:text-white">Everyday Task</h1>
                   </div>
@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Sheet>
               <div className="flex items-center">
                 <div className="h-8 w-8 rounded-full bg-gradient-to-r from-forest-500 to-green-400 flex items-center justify-center animate-pulse-gentle">
-                  <span className="text-white font-bold text-sm">E</span>
+                  <CheckSquare className="text-white w-4 h-4" />
                 </div>
                 <h1 className="text-lg font-bold ml-2 text-gray-800 dark:text-white">Everyday Task</h1>
               </div>

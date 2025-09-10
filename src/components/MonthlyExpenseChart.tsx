@@ -60,25 +60,25 @@ const MonthlyExpenseChart: React.FC = () => {
   };
   return <Card className="shadow-md">
       <CardHeader className="px-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-8 w-8 p-0">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h3 className="text-xl font-semibold min-w-[160px] text-center">
-              {format(currentMonth, 'MMMM yyyy')}
-            </h3>
-            <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-8 w-8 p-0">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToCurrentMonth} className="text-xs h-8 ml-2">
-              Today
-            </Button>
-          </div>
-          <span className="text-xl font-semibold text-primary">₹{monthTotal.toFixed(2)}</span>
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-8 w-8 p-0">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h3 className="text-xl font-semibold min-w-[160px] text-center">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h3>
+          <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-8 w-8 p-0">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToCurrentMonth} className="text-xs h-8 ml-2">
+            Today
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 text-center">
+          <span className="text-2xl font-bold text-primary">Total: ₹{monthTotal.toFixed(2)}</span>
+        </div>
         {monthlyExpenses.length === 0 ? <div className="text-center py-8 text-gray-500">
             No expenses recorded for {format(currentMonth, 'MMMM yyyy')}
           </div> : <div className="h-[300px]">

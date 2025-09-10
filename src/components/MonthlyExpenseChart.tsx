@@ -59,13 +59,13 @@ const MonthlyExpenseChart: React.FC = () => {
     setCurrentMonth(new Date());
   };
   return <Card className="shadow-md">
-      <CardHeader className="px-[12px]">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2 px-[14px]">
+      <CardHeader className="px-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-8 w-8 p-0">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h3 className="text-xl font-semibold text-center">
+            <h3 className="text-xl font-semibold min-w-[160px] text-center">
               {format(currentMonth, 'MMMM yyyy')}
             </h3>
             <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-8 w-8 p-0">
@@ -75,7 +75,7 @@ const MonthlyExpenseChart: React.FC = () => {
               Today
             </Button>
           </div>
-          <span className="text-xl font-semibold">₹{monthTotal.toFixed(2)}</span>
+          <span className="text-xl font-semibold text-primary">₹{monthTotal.toFixed(2)}</span>
         </div>
       </CardHeader>
       <CardContent>

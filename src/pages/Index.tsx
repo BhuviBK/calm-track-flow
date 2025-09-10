@@ -12,9 +12,9 @@ const Index: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mb-6 transition-all duration-500 animate-fade-in">
-        <h1 className="text-3xl font-bold mb-2 animate-float">Welcome to ZenMind</h1>
-        <p className="text-gray-600 dark:text-gray-300 animate-fade-in" style={{ animationDelay: '300ms' }}>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Welcome to ZenMind</h1>
+        <p className="text-gray-600 dark:text-gray-300">
           Your daily task and expense tracker
         </p>
       </div>

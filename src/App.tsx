@@ -22,6 +22,7 @@ import FoodPage from "./pages/FoodPage";
 import PomodoroPage from "./pages/PomodoroPage";
 import ExerciseTimerPage from "./pages/ExerciseTimerPage";
 import TodoPage from "./pages/TodoPage";
+import BudgetPage from "./pages/BudgetPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => {
                 <Route path="/pomodoro" element={<ProtectedRoute><PomodoroPage /></ProtectedRoute>} />
                 <Route path="/exercise-timer" element={<ProtectedRoute><ExerciseTimerPage /></ProtectedRoute>} />
                 <Route path="/todo" element={<ProtectedRoute><TodoPage /></ProtectedRoute>} />
+                <Route path="/budget" element={<ProtectedRoute><BudgetPage /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

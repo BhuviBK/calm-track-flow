@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, KeyRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function AuthPage() {
@@ -15,15 +15,45 @@ export default function AuthPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
   });
 
-  // Redirect if already authenticated
-  if (user) {
+  // Check for recovery flow on mount
+  useEffect(() => {
+    const handleRecoveryFlow = async () => {
+      // Check URL hash for recovery token
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      if (type === 'recovery' && accessToken) {
+        setShowUpdatePassword(true);
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+
+    handleRecoveryFlow();
+
+    // Listen for auth state changes to detect recovery session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowUpdatePassword(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Redirect if already authenticated and not in password update mode
+  if (user && !showUpdatePassword) {
     return <Navigate to="/" replace />;
   }
 
@@ -117,8 +147,11 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
+      // Use the preview URL for redirect
+      const redirectUrl = window.location.origin + '/auth';
+      
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: redirectUrl,
       });
 
       if (error) {
@@ -145,6 +178,128 @@ export default function AuthPage() {
       setIsLoading(false);
     }
   };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newPassword.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a new password.",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Passwords do not match.",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Password updated!",
+          description: "Your password has been successfully changed. You can now sign in.",
+        });
+        setShowUpdatePassword(false);
+        setNewPassword('');
+        setConfirmNewPassword('');
+        // Sign out to clear the recovery session
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update Password View (after clicking reset link)
+  if (showUpdatePassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <KeyRound className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+            <CardDescription>
+              Enter your new password below
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                <Input
+                  id="confirm-new-password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Password'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Forgot Password View
   if (showForgotPassword) {

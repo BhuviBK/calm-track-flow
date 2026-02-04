@@ -1,61 +1,103 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Wallet, Plus, Trash2, Edit2, Check, X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
 interface Expense {
   id: string;
-  name: string;
+  description: string;
   amount: number;
   date: string;
 }
+
 const BudgetPage: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [totalBudget, setTotalBudget] = useState<number>(0);
   const [budgetInput, setBudgetInput] = useState<string>('');
   const [isEditingBudget, setIsEditingBudget] = useState<boolean>(false);
+  const [isSavingBudget, setIsSavingBudget] = useState<boolean>(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpenseName, setNewExpenseName] = useState<string>('');
   const [newExpenseAmount, setNewExpenseAmount] = useState<string>('');
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editName, setEditName] = useState<string>('');
   const [editAmount, setEditAmount] = useState<string>('');
+  const [isAddingExpense, setIsAddingExpense] = useState<boolean>(false);
 
-  // Load data from localStorage
+  // Load data from Supabase
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Load budget settings
+      const { data: budgetData, error: budgetError } = await supabase
+        .from('budget_settings')
+        .select('total_budget')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (budgetError) throw budgetError;
+      
+      if (budgetData) {
+        setTotalBudget(Number(budgetData.total_budget));
+        setBudgetInput(budgetData.total_budget.toString());
+      }
+
+      // Load expenses
+      const { data: expensesData, error: expensesError } = await supabase
+        .from('budget_expenses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (expensesError) throw expensesError;
+
+      if (expensesData) {
+        setExpenses(expensesData.map(e => ({
+          id: e.id,
+          description: e.description,
+          amount: Number(e.amount),
+          date: e.date
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading budget data:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load budget data. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, toast]);
+
   useEffect(() => {
     if (user) {
-      const savedBudget = localStorage.getItem(`budget_${user.id}`);
-      const savedExpenses = localStorage.getItem(`budget_expenses_${user.id}`);
-      if (savedBudget) {
-        setTotalBudget(parseFloat(savedBudget));
-        setBudgetInput(savedBudget);
-      }
-      if (savedExpenses) {
-        setExpenses(JSON.parse(savedExpenses));
-      }
+      loadData();
+    } else {
+      setTotalBudget(0);
+      setExpenses([]);
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, loadData]);
 
-  // Save to localStorage when data changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`budget_${user.id}`, totalBudget.toString());
-      localStorage.setItem(`budget_expenses_${user.id}`, JSON.stringify(expenses));
-    }
-  }, [totalBudget, expenses, user]);
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const remainingBalance = totalBudget - totalExpenses;
-  const percentageUsed = totalBudget > 0 ? totalExpenses / totalBudget * 100 : 0;
-  const handleSetBudget = () => {
+  const percentageUsed = totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+
+  const handleSetBudget = async () => {
+    if (!user) return;
+    
     const amount = parseFloat(budgetInput);
     if (isNaN(amount) || amount < 0) {
       toast({
@@ -65,16 +107,44 @@ const BudgetPage: React.FC = () => {
       });
       return;
     }
-    setTotalBudget(amount);
-    setIsEditingBudget(false);
-    toast({
-      title: "Budget updated",
-      description: `Total budget set to ₹${amount.toFixed(2)}`
-    });
+
+    setIsSavingBudget(true);
+    try {
+      const { error } = await supabase
+        .from('budget_settings')
+        .upsert({
+          user_id: user.id,
+          total_budget: amount
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      setTotalBudget(amount);
+      setIsEditingBudget(false);
+      toast({
+        title: "Budget updated",
+        description: `Total budget set to ₹${amount.toFixed(2)}`
+      });
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save budget. Please try again."
+      });
+    } finally {
+      setIsSavingBudget(false);
+    }
   };
-  const handleAddExpense = () => {
+
+  const handleAddExpense = async () => {
+    if (!user) return;
+    
     const name = newExpenseName.trim();
     const amount = parseFloat(newExpenseAmount);
+
     if (!name) {
       toast({
         variant: "destructive",
@@ -83,6 +153,7 @@ const BudgetPage: React.FC = () => {
       });
       return;
     }
+
     if (isNaN(amount) || amount <= 0) {
       toast({
         variant: "destructive",
@@ -91,36 +162,89 @@ const BudgetPage: React.FC = () => {
       });
       return;
     }
-    const newExpense: Expense = {
-      id: Date.now().toString(),
-      name,
-      amount,
-      date: new Date().toISOString()
-    };
-    setExpenses([newExpense, ...expenses]);
-    setNewExpenseName('');
-    setNewExpenseAmount('');
-    toast({
-      title: "Expense added",
-      description: `Added ₹${amount.toFixed(2)} for ${name}`
-    });
+
+    setIsAddingExpense(true);
+    try {
+      const { data, error } = await supabase
+        .from('budget_expenses')
+        .insert({
+          user_id: user.id,
+          description: name,
+          amount: amount,
+          date: new Date().toISOString().split('T')[0]
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newExpense: Expense = {
+        id: data.id,
+        description: data.description,
+        amount: Number(data.amount),
+        date: data.date
+      };
+
+      setExpenses([newExpense, ...expenses]);
+      setNewExpenseName('');
+      setNewExpenseAmount('');
+      toast({
+        title: "Expense added",
+        description: `Added ₹${amount.toFixed(2)} for ${name}`
+      });
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add expense. Please try again."
+      });
+    } finally {
+      setIsAddingExpense(false);
+    }
   };
-  const handleDeleteExpense = (id: string) => {
+
+  const handleDeleteExpense = async (id: string) => {
+    if (!user) return;
+    
     const expense = expenses.find(e => e.id === id);
-    setExpenses(expenses.filter(e => e.id !== id));
-    toast({
-      title: "Expense deleted",
-      description: expense ? `Removed ₹${expense.amount.toFixed(2)} for ${expense.name}` : "Expense removed"
-    });
+    
+    try {
+      const { error } = await supabase
+        .from('budget_expenses')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setExpenses(expenses.filter(e => e.id !== id));
+      toast({
+        title: "Expense deleted",
+        description: expense ? `Removed ₹${expense.amount.toFixed(2)} for ${expense.description}` : "Expense removed"
+      });
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete expense. Please try again."
+      });
+    }
   };
+
   const handleEditExpense = (expense: Expense) => {
     setEditingExpenseId(expense.id);
-    setEditName(expense.name);
+    setEditName(expense.description);
     setEditAmount(expense.amount.toString());
   };
-  const handleSaveEdit = (id: string) => {
+
+  const handleSaveEdit = async (id: string) => {
+    if (!user) return;
+    
     const name = editName.trim();
     const amount = parseFloat(editAmount);
+
     if (!name || isNaN(amount) || amount <= 0) {
       toast({
         variant: "destructive",
@@ -129,37 +253,91 @@ const BudgetPage: React.FC = () => {
       });
       return;
     }
-    setExpenses(expenses.map(e => e.id === id ? {
-      ...e,
-      name,
-      amount
-    } : e));
-    setEditingExpenseId(null);
-    toast({
-      title: "Expense updated",
-      description: `Updated to ₹${amount.toFixed(2)} for ${name}`
-    });
+
+    try {
+      const { error } = await supabase
+        .from('budget_expenses')
+        .update({
+          description: name,
+          amount: amount
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setExpenses(expenses.map(e => 
+        e.id === id ? { ...e, description: name, amount } : e
+      ));
+      setEditingExpenseId(null);
+      toast({
+        title: "Expense updated",
+        description: `Updated to ₹${amount.toFixed(2)} for ${name}`
+      });
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update expense. Please try again."
+      });
+    }
   };
+
   const handleCancelEdit = () => {
     setEditingExpenseId(null);
     setEditName('');
     setEditAmount('');
   };
-  const handleClearAll = () => {
-    setExpenses([]);
-    toast({
-      title: "All expenses cleared",
-      description: "Your expense list has been reset."
-    });
+
+  const handleClearAll = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('budget_expenses')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setExpenses([]);
+      toast({
+        title: "All expenses cleared",
+        description: "Your expense list has been reset."
+      });
+    } catch (error) {
+      console.error('Error clearing expenses:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to clear expenses. Please try again."
+      });
+    }
   };
+
   if (!user) {
-    return <Layout>
+    return (
+      <Layout>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Please log in to track your budget.</p>
         </div>
-      </Layout>;
+      </Layout>
+    );
   }
-  return <Layout>
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
       <div className="space-y-6 animate-fade-in">
         <h1 className="text-2xl font-bold">Budget Tracker</h1>
 
@@ -173,23 +351,42 @@ const BudgetPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm opacity-90">Total Budget</p>
-                  {isEditingBudget ? <div className="flex items-center gap-2 mt-1">
-                      <Input type="number" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} className="h-8 w-32 text-black" placeholder="Enter amount" autoFocus />
-                      <Button size="sm" variant="secondary" onClick={handleSetBudget}>
-                        <Check className="h-4 w-4" />
+                  {isEditingBudget ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        type="number"
+                        value={budgetInput}
+                        onChange={e => setBudgetInput(e.target.value)}
+                        className="h-8 w-32 text-black"
+                        placeholder="Enter amount"
+                        autoFocus
+                        disabled={isSavingBudget}
+                      />
+                      <Button size="sm" variant="secondary" onClick={handleSetBudget} disabled={isSavingBudget}>
+                        {isSavingBudget ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setIsEditingBudget(false)} className="text-white hover:bg-white/20">
+                      <Button size="sm" variant="ghost" onClick={() => setIsEditingBudget(false)} className="text-white hover:bg-white/20" disabled={isSavingBudget}>
                         <X className="h-4 w-4" />
                       </Button>
-                    </div> : <p className="text-3xl font-bold">₹{totalBudget.toFixed(2)}</p>}
+                    </div>
+                  ) : (
+                    <p className="text-3xl font-bold">₹{totalBudget.toFixed(2)}</p>
+                  )}
                 </div>
               </div>
-              {!isEditingBudget && <Button variant="ghost" size="sm" onClick={() => {
-              setBudgetInput(totalBudget.toString());
-              setIsEditingBudget(true);
-            }} className="text-white hover:bg-white/20">
+              {!isEditingBudget && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setBudgetInput(totalBudget.toString());
+                    setIsEditingBudget(true);
+                  }}
+                  className="text-white hover:bg-white/20"
+                >
                   <Edit2 className="h-4 w-4" />
-                </Button>}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -213,7 +410,8 @@ const BudgetPage: React.FC = () => {
         </div>
 
         {/* Progress Bar */}
-        {totalBudget > 0 && <Card>
+        {totalBudget > 0 && (
+          <Card>
             <CardContent className="pt-4">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Budget Used</span>
@@ -222,12 +420,16 @@ const BudgetPage: React.FC = () => {
                 </span>
               </div>
               <div className="h-3 bg-muted rounded-full overflow-hidden">
-                <div className={`h-full transition-all duration-500 rounded-full ${percentageUsed > 100 ? 'bg-red-500' : percentageUsed > 75 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{
-              width: `${Math.min(percentageUsed, 100)}%`
-            }} />
+                <div
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    percentageUsed > 100 ? 'bg-red-500' : percentageUsed > 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${Math.min(percentageUsed, 100)}%` }}
+                />
               </div>
             </CardContent>
-          </Card>}
+          </Card>
+        )}
 
         {/* Add Expense Form */}
         <Card>
@@ -238,15 +440,34 @@ const BudgetPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="expense-name">Expense Name</Label>
-                <Input id="expense-name" placeholder="e.g., Groceries" value={newExpenseName} onChange={e => setNewExpenseName(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleAddExpense()} />
+                <Input
+                  id="expense-name"
+                  placeholder="e.g., Groceries"
+                  value={newExpenseName}
+                  onChange={e => setNewExpenseName(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleAddExpense()}
+                  disabled={isAddingExpense}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="expense-amount">Amount (₹)</Label>
-                <Input id="expense-amount" type="number" placeholder="0.00" value={newExpenseAmount} onChange={e => setNewExpenseAmount(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleAddExpense()} />
+                <Input
+                  id="expense-amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={newExpenseAmount}
+                  onChange={e => setNewExpenseAmount(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleAddExpense()}
+                  disabled={isAddingExpense}
+                />
               </div>
             </div>
-            <Button onClick={handleAddExpense} className="w-full bg-emerald-500 hover:bg-emerald-600">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={handleAddExpense} className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={isAddingExpense}>
+              {isAddingExpense ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
               Add Expense
             </Button>
           </CardContent>
@@ -256,27 +477,50 @@ const BudgetPage: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Expenses ({expenses.length})</CardTitle>
-            {expenses.length > 0 && <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-red-500 hover:text-red-700">
+            {expenses.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-red-500 hover:text-red-700">
                 Clear All
-              </Button>}
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
-            {expenses.length === 0 ? <p className="text-center text-muted-foreground py-8">
+            {expenses.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
                 No expenses added yet. Add your first expense above!
-              </p> : <div className="space-y-2">
-                {expenses.map(expense => <div key={expense.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg group hover:bg-muted transition-colors">
-                    {editingExpenseId === expense.id ? <div className="flex items-center gap-2 flex-1">
-                        <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-8 flex-1" placeholder="Name" />
-                        <Input type="number" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="h-8 w-24" placeholder="Amount" />
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {expenses.map(expense => (
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg group hover:bg-muted transition-colors"
+                  >
+                    {editingExpenseId === expense.id ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <Input
+                          value={editName}
+                          onChange={e => setEditName(e.target.value)}
+                          className="h-8 flex-1"
+                          placeholder="Name"
+                        />
+                        <Input
+                          type="number"
+                          value={editAmount}
+                          onChange={e => setEditAmount(e.target.value)}
+                          className="h-8 w-24"
+                          placeholder="Amount"
+                        />
                         <Button size="sm" variant="ghost" onClick={() => handleSaveEdit(expense.id)}>
                           <Check className="h-4 w-4 text-green-500" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
                           <X className="h-4 w-4 text-red-500" />
                         </Button>
-                      </div> : <>
+                      </div>
+                    ) : (
+                      <>
                         <div>
-                          <p className="font-medium">{expense.name}</p>
+                          <p className="font-medium">{expense.description}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(expense.date).toLocaleDateString()}
                           </p>
@@ -287,17 +531,27 @@ const BudgetPage: React.FC = () => {
                             <Button size="sm" variant="ghost" onClick={() => handleEditExpense(expense)}>
                               <Edit2 className="h-3 w-3" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteExpense(expense.id)} className="text-red-500 hover:text-red-700">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
-                      </>}
-                  </div>)}
-              </div>}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-    </Layout>;
+    </Layout>
+  );
 };
+
 export default BudgetPage;

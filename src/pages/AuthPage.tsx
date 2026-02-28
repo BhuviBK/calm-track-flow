@@ -27,27 +27,17 @@ export default function AuthPage() {
 
   // Check for recovery flow on mount
   useEffect(() => {
-    const handleRecoveryFlow = async () => {
-      // Check URL hash for recovery token
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const type = hashParams.get('type');
-      const accessToken = hashParams.get('access_token');
-      
-      if (type === 'recovery' && accessToken) {
-        setShowUpdatePassword(true);
-        // Clear the hash from URL
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    };
-
-    handleRecoveryFlow();
-
     // Listen for auth state changes to detect recovery session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setShowUpdatePassword(true);
+        // Clear the hash from URL after Supabase has processed it
+        window.history.replaceState(null, '', window.location.pathname);
       }
     });
+
+    // Let Supabase process the URL hash tokens automatically
+    // It will trigger PASSWORD_RECOVERY event via onAuthStateChange
 
     return () => subscription.unsubscribe();
   }, []);

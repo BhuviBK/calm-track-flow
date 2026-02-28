@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import ExpenseTracker from '@/components/ExpenseTracker';
 import ExpenseList from '@/components/ExpenseList';
@@ -8,7 +8,8 @@ import MonthlyExpenseChart from '@/components/MonthlyExpenseChart';
 import { stopAllSounds } from '@/utils/audioUtils';
 
 const ExpensePage: React.FC = () => {
-  // Clean up any playing audio when navigating to this page
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
   useEffect(() => {
     stopAllSounds();
   }, []);
@@ -17,7 +18,7 @@ const ExpensePage: React.FC = () => {
     <Layout>
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2 animate-fade-in">Expense Tracker</h1>
-        <p className="text-gray-600 dark:text-gray-300 animate-fade-in" style={{ animationDelay: '100ms' }}>
+        <p className="text-muted-foreground animate-fade-in" style={{ animationDelay: '100ms' }}>
           Track your daily spending and view expense reports
         </p>
       </div>
@@ -33,11 +34,11 @@ const ExpensePage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 animate-fade-in" style={{ animationDelay: '300ms' }}>
               <DailyExpenseChart />
               <div>
-                <MonthlyExpenseChart />
+                <MonthlyExpenseChart currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} />
               </div>
             </div>
             <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
-              <ExpenseList />
+              <ExpenseList currentMonth={currentMonth} />
             </div>
           </div>
         </div>

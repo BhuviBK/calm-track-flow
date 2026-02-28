@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,14 +40,26 @@ interface ExpenseData {
   description: string;
 }
 
-const ExpenseList: React.FC = () => {
+interface ExpenseListProps {
+  currentMonth: Date;
+}
+
+const ExpenseList: React.FC<ExpenseListProps> = ({ currentMonth }) => {
   const { expenses, deleteExpense, updateExpense } = useAppContext();
   const isMobile = useIsMobile();
   const [editingExpense, setEditingExpense] = useState<ExpenseData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
+  // Filter expenses for the selected month
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const filteredExpenses = expenses.filter(expense => {
+    const expDate = new Date(expense.date);
+    return expDate >= monthStart && expDate <= monthEnd;
+  });
+  
   // Sort expenses by date (newest first)
-  const sortedExpenses = [...expenses].sort((a, b) => 
+  const sortedExpenses = [...filteredExpenses].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
   
@@ -94,16 +106,15 @@ const ExpenseList: React.FC = () => {
     toast.success('Expense deleted');
   };
   
-  const totalAmount = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const totalAmount = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
   
   const exportToExcel = () => {
-    if (expenses.length === 0) {
+    if (filteredExpenses.length === 0) {
       toast.error('No expenses to export');
       return;
     }
 
-    // Prepare data for Excel export
-    const excelData = expenses.map(expense => ({
+    const excelData = filteredExpenses.map(expense => ({
       Date: format(new Date(expense.date), 'dd/MM/yyyy'),
       Category: expense.category,
       Description: expense.description || '-',
@@ -145,7 +156,7 @@ const ExpenseList: React.FC = () => {
   return (
     <Card className="shadow-md transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
-        <CardTitle className="text-xl">Recent Expenses</CardTitle>
+        <CardTitle className="text-xl">{format(currentMonth, 'MMMM yyyy')} Expenses</CardTitle>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           <Button
             onClick={exportToExcel}
@@ -163,7 +174,7 @@ const ExpenseList: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {expenses.length === 0 ? (
+        {filteredExpenses.length === 0 ? (
           <div className="text-center py-8 text-gray-500 animate-pulse">
             No expenses recorded yet
           </div>

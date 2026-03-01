@@ -1,41 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-  date: string;
-}
+import { useTodos } from '@/hooks/useTodos';
 
 const TaskPreview: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { todos, loading } = useTodos();
 
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) {
-      const allTasks = JSON.parse(savedTasks);
-      const today = new Date().toISOString().split('T')[0];
-      // Show today's tasks and incomplete tasks from previous days
-      const relevantTasks = allTasks.filter((task: Task) => {
-        return task.date === today || (!task.completed && task.date < today);
-      }).slice(0, 3); // Limit to 3 for preview
-      setTasks(relevantTasks);
-    }
-  }, []);
+  // Show only pending (not completed) tasks, limit to 5
+  const pendingTasks = todos.filter(t => !t.completed).slice(0, 5);
 
-  if (tasks.length === 0) {
+  if (loading) {
+    return (
+      <Card className="p-6 text-center">
+        <p className="text-muted-foreground">Loading tasks...</p>
+      </Card>
+    );
+  }
+
+  if (pendingTasks.length === 0) {
     return (
       <Card className="p-6 text-center">
         <div className="space-y-3">
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-            <Plus className="h-6 w-6 text-purple-600" />
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+            <Plus className="h-6 w-6 text-primary" />
           </div>
-          <p className="text-muted-foreground">No tasks for today</p>
-          <Button asChild size="sm" className="bg-purple-500 hover:bg-purple-600">
+          <p className="text-muted-foreground">No pending tasks</p>
+          <Button asChild size="sm" className="bg-primary hover:bg-primary/90">
             <Link to="/todo">Add Your First Task</Link>
           </Button>
         </div>
@@ -45,29 +37,30 @@ const TaskPreview: React.FC = () => {
 
   return (
     <div className="space-y-2">
-      {tasks.map((task) => (
-        <Card key={task.id} className={`transition-all ${task.completed ? 'bg-muted/50' : ''}`}>
+      {pendingTasks.map((task) => (
+        <Card key={task.id} className="transition-all hover:shadow-md">
           <CardContent className="p-3">
             <div className="flex items-center gap-3">
-              <div
-                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  task.completed 
-                    ? 'bg-purple-500 border-purple-500 text-white' 
-                    : 'border-gray-300'
-                }`}
-              >
-                {task.completed && <Check className="h-3 w-3" />}
+              <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center shrink-0">
+                <Circle className="h-2 w-2 text-primary" />
               </div>
-              <p className={`text-sm flex-1 ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                {task.title}
-              </p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm truncate">{task.title}</p>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  task.status === 'in-progress' 
+                    ? 'bg-secondary/20 text-secondary-foreground' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {task.status === 'in-progress' ? 'In Progress' : 'To Do'}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
       ))}
       <div className="pt-2">
         <Button asChild size="sm" variant="outline" className="w-full">
-          <Link to="/todo">View All Tasks</Link>
+          <Link to="/todo">View All Tasks ({todos.filter(t => !t.completed).length} pending)</Link>
         </Button>
       </div>
     </div>
